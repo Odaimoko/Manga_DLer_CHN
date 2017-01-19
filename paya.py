@@ -2,11 +2,13 @@ from urllib import request, parse, error
 import re, json
 import sys, time
 import threading, multiprocessing
-import multiprocessing.pool.Pool as Pool
+from multiprocessing.pool import Pool
 
 # multiprocessing.Queue
 # sys.path.append("..")
 # import iMyUtil
+
+dl_dir = ""
 
 already_tenma_file = "already_tenma_json.txt"
 log_tenma_file = "tenma_log_json.txt"
@@ -49,7 +51,7 @@ def addToAlready(content, alreadySet, alreadyFileName):
 def record_log(logFileName, *src):
 	lock_log_file.acquire()
 	try:
-		print(" ".join(src))
+		print(*src)
 		with open(logFileName, "ab") as lo:
 			# 解决直接write出现 encode 错误，还是手动encode+写入二进制
 			lo.write(str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())).encode())
@@ -190,7 +192,146 @@ def try_getJson():
 	# print(threading.enumerate())
 
 
+# ================================================================================
+
+
+
+log_book_file = "book_log.txt"
+
+
+def getBookName(site, content):
+	if site == "163":
+		# content => bookId
+		book_url = "https://manhua.163.com/source/" + content
+		try:
+			response = request.urlopen(book_url)
+			webpage = response.read().decode("utf8")  # 也许人家不是utf8
+			# 如果人家换了呢
+			patt = re.compile(r'<p class="book-title">.*</p>')
+			bookname = patt.findall(webpage)
+			bookname = bookname[0]
+			bookname = bookname.replace('<p class="book-title">', '').replace('</p>', '')
+			return bookname
+			print(bookname)
+		except error.URLError:
+			record_log(log_book_file, "获取超时")
+			return None
+
+
+local_tenma_pool = "天才麻将少女_本篇_pool/"
+already_tenma_pool = set()
+already_tenma_file_pool = "already_tenma_pool.txt"
+log_tenma_file_pool = "tenma_log_pool.txt"
+MAX_DL_TIMES = 3
+
+
+def pic_dl_with_pool(pic_url, file_name):
+	# Return True: Successfully , False otherwise
+	dl_times = 0
+	while dl_times < MAX_DL_TIMES:
+		dl_times += 1
+		try:
+			rq = request.Request(pic_url)  # 也许有机会重用一个对象，因为这里每次都要新建一个
+			# rq.add_header('User-Agent', 'Mozilla/4.0(compatible;MSIE5.5;WindowsNT)')
+			response = request.urlopen(rq, timeout=3000)
+			with open(file_name, "wb") as pic:
+				pic.write(response.read())
+				addToAlready(file_name, already_tenma_pool, already_tenma_file_pool)
+		except error.URLError as t:
+			record_log(log_tenma_file_pool, "下载", file_name, "超时", dl_times, "times")
+		except Exception as e:
+			record_log(log_tenma_file_pool, "其他错误", e)
+		else:
+			return True
+
+	return False
+
+
+def ep_dl_with_pool(pages, ep_url, folder_name):
+	record_log(log_tenma_file_pool, "开始下载", folder_name,"共", pages, "页")
+	p = Pool(pages)
+	createFolder(folder_name)
+	page_rq = request.Request(ep_url)
+	response = request.urlopen(page_rq)
+	str_con = response.read().decode("utf8")
+	patt = re.compile(r"url: window.IS_SUPPORT_WEBP ?.*,?")
+	pics_raw = patt.findall(str_con)
+	num = 0
+	shippai = 0
+	isDLed = 0
+
+	def assignIt(returnValue):
+		nonlocal isDLed
+		isDLed = returnValue
+
+	for pics in pics_raw:
+		isDLed = 0
+		num += 1
+		url = pics.split(": ")[2]  # 得到地址（分隔后最后一个）
+		url = url[1:len(url) - 2]  # 得到地址（拿来用）
+		file_name = folder_name + '{:0>3}'.format(str(num)) + ".png"
+		if file_name in already_tenma:
+			record_log(log_tenma_file, file_name, "已下载")
+			continue
+		isDLed = pic_dl_with_pool(url, file_name)
+		# p.apply_async(pic_dl_with_pool, args=(url, file_name), callback=assignIt)
+		if not isDLed:
+			shippai += 1
+			record_log(log_tenma_file_pool, "Shippai This Folder:", folder_name, ", pic No.:", num, " , URL: ", url)
+	p.close()
+	p.join()
+	if not shippai:
+		record_log(log_tenma_file_pool, folder_name, "下载完成")
+	else:
+		record_log(log_tenma_file_pool, folder_name, shippai, "张图片挂了")
+
+
+# def bool_dl_with_pool(json_url):
+def book_dl_with_pool(bookId):
+	bookname = getBookName("163", bookId)
+	if bookname == None:
+		return record_log(log_book_file, "未能找到书本", 163, bookId)
+	json_url = "https://manhua.163.com/book/catalog/" + str(bookId) + ".json"
+	rq = request.Request(json_url)
+	response = request.urlopen(rq)
+	menu_js = response.read().decode("utf8")
+	js = json.loads(menu_js)
+	# print(type(js["catalog"]["sections"][0]["sections"][0]))
+	# print(len(js["catalog"]["sections"][0]["sections"]))
+	num_of_ep = 0
+	for each_section in js["catalog"]["sections"]:
+		for subsection in each_section["sections"]:
+			num_of_ep += 1
+			if num_of_ep == 2:
+				return
+			bookId = subsection["bookId"]
+			pages = subsection["wordCount"]
+			sectionId = subsection["sectionId"]
+			fullTitle = subsection["fullTitle"]
+			url_one_wa = "https://manhua.163.com/reader/" + bookId + "/" + sectionId + "/"
+			ep_folder_name = dl_dir + bookname + "/" + '{:0>4}'.format(
+				str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
+			print(url_one_wa)
+			
+	# for each in js["catalog"]["sections"][0]["sections"]:
+	# 	num_of_ep += 1
+	# 	if num_of_ep == 2:
+	# 		return
+	# 	bookId = each["bookId"]
+	# 	pages = each["wordCount"]
+	# 	sectionId = each["sectionId"]
+	# 	fullTitle = each["fullTitle"]
+	# 	url_one_wa = "https://manhua.163.com/reader/" + bookId + "/" + sectionId + "/"
+	# 	ep_folder_name = dl_dir + bookname + "/" + '{:0>4}'.format(
+	# 		str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
+	# 	print(url_one_wa)
+		# ep_dl_with_pool(pages, url_one_wa, ep_folder_name)
+
+
 # 使用多线程： 用每个线程下载不同的图片（每一话新开pool）
-initializeAlready(already_tenma, already_tenma_file)
-try_getJson()
+# initializeAlready(already_tenma, already_tenma_file)
+# try_getJson()
 tenma = "4458002705630123103"
+L_Dart = "4603479161120104695"  # 神契 幻奇谭
+# getBookName("163", L_Dart)
+book_dl_with_pool(L_Dart)
