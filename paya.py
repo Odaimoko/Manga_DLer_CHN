@@ -345,4 +345,4 @@ if __name__=="__main__":
 	# getBookName("163", L_Dart)
 	bookid = str(input())
 	initializeAlready(already_tenma_pool,already_tenma_file_pool)
-	book_dl_with_pool(L_Dart)
+	book_dl_with_pool(bookid)
