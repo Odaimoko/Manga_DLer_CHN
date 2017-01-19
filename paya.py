@@ -243,13 +243,13 @@ def pic_dl_with_pool(pic_url, file_name):
 			record_log(log_tenma_file_pool, "其他错误", e)
 		else:
 			return True
-
+	# record_log(log_tenma_file_pool, "Shippai This Folder:", folder_name, ", pic No:", num, " , URL: ", url)
 	return False
 
 
 def ep_dl_with_pool(pages, ep_url, folder_name):
 	record_log(log_tenma_file_pool, "开始下载", folder_name,"共", pages, "页")
-	p = Pool(pages)
+	# p = Pool(pages)
 	createFolder(folder_name)
 	page_rq = request.Request(ep_url)
 	response = request.urlopen(page_rq)
@@ -258,28 +258,25 @@ def ep_dl_with_pool(pages, ep_url, folder_name):
 	pics_raw = patt.findall(str_con)
 	num = 0
 	shippai = 0
-	isDLed = 0
-
-	def assignIt(returnValue):
-		nonlocal isDLed
-		isDLed = returnValue
-
 	for pics in pics_raw:
-		isDLed = 0
 		num += 1
 		url = pics.split(": ")[2]  # 得到地址（分隔后最后一个）
 		url = url[1:len(url) - 2]  # 得到地址（拿来用）
 		file_name = folder_name + '{:0>3}'.format(str(num)) + ".png"
-		if file_name in already_tenma:
-			record_log(log_tenma_file, file_name, "已下载")
+		if file_name in already_tenma_pool:
+			record_log(log_tenma_file_pool, file_name, "已下载")
 			continue
 		isDLed = pic_dl_with_pool(url, file_name)
-		# p.apply_async(pic_dl_with_pool, args=(url, file_name), callback=assignIt)
+		# result = p.apply_async(pic_dl_with_pool, args=(url, file_name))
+		# isDLed = result.get() # 直接获取返回值，去你大爷的callback
+		# record_log(log_tenma_file_pool,"isDLed",isDLed)
+		if isDLed:
+			record_log(log_tenma_file_pool,"图片下载成功",file_name)
 		if not isDLed:
 			shippai += 1
-			record_log(log_tenma_file_pool, "Shippai This Folder:", folder_name, ", pic No.:", num, " , URL: ", url)
-	p.close()
-	p.join()
+			record_log(log_tenma_file_pool, "Shippai This Folder:", folder_name, ", pic No:", num, " , URL: ", url)
+	# p.close()
+	# p.join()
 	if not shippai:
 		record_log(log_tenma_file_pool, folder_name, "下载完成")
 	else:
@@ -309,7 +306,7 @@ def book_dl_with_pool(bookId):
 		# print( each_section )
 		record_log(log_tenma_file_pool,"开始下载篇章",chap_foldername)
 
-		
+
 		num_of_ep = 0
 		for subsection in each_section["sections"]:
 			num_of_ep += 1
@@ -323,7 +320,7 @@ def book_dl_with_pool(bookId):
 			ep_folder_name = chap_foldername + '{:0>4}'.format(
 				str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
 			# print(ep_folder_name,url_one_wa)
-			# ep_dl_with_pool(pages, url_one_wa, ep_folder_name)
+			ep_dl_with_pool(pages, url_one_wa, ep_folder_name)
 
 	# for each in js["catalog"]["sections"][0]["sections"]:
 	# 	num_of_ep += 1
@@ -339,11 +336,12 @@ def book_dl_with_pool(bookId):
 	# 	print(url_one_wa)
 		# ep_dl_with_pool(pages, url_one_wa, ep_folder_name)
 
-
-# 使用多线程： 用每个线程下载不同的图片（每一话新开pool）
-# initializeAlready(already_tenma, already_tenma_file)
-# try_getJson()
-tenma = "4458002705630123103"
-L_Dart = "4603479161120104695"  # 神契 幻奇谭
-# getBookName("163", L_Dart)
-book_dl_with_pool(L_Dart)
+if __name__=="__main__":
+	# 使用多线程： 用每个线程下载不同的图片（每一话新开pool）
+	# initializeAlready(already_tenma, already_tenma_file)
+	# try_getJson()
+	tenma = "4458002705630123103"
+	L_Dart = "4603479161120104695"  # 神契 幻奇谭
+	# getBookName("163", L_Dart)
+	initializeAlready(already_tenma_pool,already_tenma_file_pool)
+	book_dl_with_pool(L_Dart)
