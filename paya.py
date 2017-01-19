@@ -343,5 +343,6 @@ if __name__=="__main__":
 	tenma = "4458002705630123103"
 	L_Dart = "4603479161120104695"  # 神契 幻奇谭
 	# getBookName("163", L_Dart)
+	bookid = str(input())
 	initializeAlready(already_tenma_pool,already_tenma_file_pool)
 	book_dl_with_pool(L_Dart)
