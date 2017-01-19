@@ -5,17 +5,23 @@ import sys, time
 # sys.path.append("..")
 # import iMyUtil
 
-already_tenma_file = "already_tenma.txt"
-log_tenma_file = "tenma_log.txt"
+already_tenma_file = "already_tenma_json.txt"
+log_tenma_file = "tenma_log_json.txt"
 already_tenma = set()
-local_tenma = "天才麻将少女_本篇/"
+local_tenma = "天才麻将少女_本篇_json/"
 
-with open(already_tenma_file, "rb") as f:
-	already_text = f.read().decode("utf8")
-	for line in already_text.splitlines():
-		# 记录全部url，包括http:// 和末尾的/
-		already_tenma.add(line)
-	del already_text
+
+try:
+	with open(already_tenma_file, "rb") as f:
+		already_text = f.read().decode("utf8")
+		for line in already_text.splitlines():
+			# 记录全部url，包括http:// 和末尾的/
+			already_tenma.add(line)
+		del already_text
+except FileNotFoundError as e:
+	# 未创建，创啊
+	with open(already_tenma_file, "w") as f:
+		pass
 
 
 def addToAlready(content, alreadySet, alreadyFileName):
@@ -96,6 +102,7 @@ def TEMA():
 		# print(ep,ep_folder_name)
 		tema(ep, ep_folder_name)
 
+
 def try_getJson():
 	json_url = "https://manhua.163.com/book/catalog/4458002705630123103.json"
 	rq = request.Request(json_url)
@@ -104,8 +111,21 @@ def try_getJson():
 	js = json.loads(menu_js)
 	print(type(js["catalog"]["sections"][0]["sections"][0]))
 	print(len(js["catalog"]["sections"][0]["sections"]))
-	# for each in js["catalog"]["sections"]:
-	# 	print(each)
+	num_of_ep = 0
+	for each in js["catalog"]["sections"][0]["sections"]:
+		num_of_ep += 1
+		# if(num_of_ep>3):
+		# 	print("say ggooooooddbyeee")
+		# 	break
+		bookId = each["bookId"]
+		pages = each["wordCount"]
+		sectionId = each["sectionId"]
+		fullTitle = each["fullTitle"]
+		url_one_wa = "https://manhua.163.com/reader/" + bookId + "/" + sectionId + "/"
+		ep_folder_name = local_tenma + '{:0>4}'.format(str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
+		tema(url_one_wa, ep_folder_name)
+		# print(ep_folder_name)
+
 # TEMA()
 
 try_getJson()
