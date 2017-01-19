@@ -297,22 +297,34 @@ def book_dl_with_pool(bookId):
 	menu_js = response.read().decode("utf8")
 	js = json.loads(menu_js)
 	# print(type(js["catalog"]["sections"][0]["sections"][0]))
-	# print(len(js["catalog"]["sections"][0]["sections"]))
-	num_of_ep = 0
+	# print(len(js["catalog"]["sections"][1]["sections"]))
+	num_of_chap = 0
 	for each_section in js["catalog"]["sections"]:
+		num_of_chap+=1
+		# 多个篇章的文件夹分开装
+		chaptername = each_section["fullTitle"]
+		chap_foldername = dl_dir+bookname+"/"+'{:0>2}'.format(
+				str(num_of_chap)) + "_" + chaptername + '/'  # 格式化文件夹名字，用0补全前面
+		# print(len(each_section)) # 因为这个是dict，所以len就是 16（dict里元素个数）
+		# print( each_section )
+		record_log(log_tenma_file_pool,"开始下载篇章",chap_foldername)
+
+		
+		num_of_ep = 0
 		for subsection in each_section["sections"]:
 			num_of_ep += 1
-			if num_of_ep == 2:
-				return
+			# if num_of_ep == 2:
+			# 	return
 			bookId = subsection["bookId"]
 			pages = subsection["wordCount"]
 			sectionId = subsection["sectionId"]
 			fullTitle = subsection["fullTitle"]
 			url_one_wa = "https://manhua.163.com/reader/" + bookId + "/" + sectionId + "/"
-			ep_folder_name = dl_dir + bookname + "/" + '{:0>4}'.format(
+			ep_folder_name = chap_foldername + '{:0>4}'.format(
 				str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
-			print(url_one_wa)
-			
+			# print(ep_folder_name,url_one_wa)
+			# ep_dl_with_pool(pages, url_one_wa, ep_folder_name)
+
 	# for each in js["catalog"]["sections"][0]["sections"]:
 	# 	num_of_ep += 1
 	# 	if num_of_ep == 2:
