@@ -34,3 +34,9 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+天才*?/
+#测试用
+noth.py
+# log 文件
+*.txt
