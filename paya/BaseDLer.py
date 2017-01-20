@@ -1,4 +1,8 @@
 class BaseDLer:
+
+	MAX_DL_TIMES = 3
+
+
 	def __init__(self):
 		pass
 

@@ -1,14 +1,30 @@
 from urllib import request, parse, error
 import re, json
-import sys, time
+import sys, time, os
 import threading, multiprocessing
 from multiprocessing.pool import Pool
 
 # multiprocessing.Queue
 # sys.path.append("..")
 # import iMyUtil
+# =======================CONSTS==========================
 
 dl_dir = ""
+main_log_dir = "../log"
+# log文件放在一起，已下载每一个单独放在对应文件夹
+
+main_already_pic_file = "already_pic.txt"
+main_already_ep_file = "already_ep.txt"
+
+
+
+
+# =======================IDS==========================
+ID_163 = "_163_"
+
+
+
+
 
 already_tenma_file = "already_tenma_json.txt"
 log_tenma_file = "tenma_log_json.txt"
@@ -18,14 +34,15 @@ num_of_threads = 4
 
 
 def initializeAlready(alreadySet, alreadyFile):
-	try:
+	exist = os.path.exists(alreadyFile)
+	if exist:
 		with open(alreadyFile, "rb") as f:
 			already_text = f.read().decode("utf8")
 			for line in already_text.splitlines():
 				# 记录全部url，包括http:// 和末尾的/
 				alreadySet.add(line)
 			del already_text
-	except FileNotFoundError as e:
+	else:
 		# 未创建，创啊
 		with open(alreadyFile, "w") as f:
 			pass
@@ -248,7 +265,7 @@ def pic_dl_with_pool(pic_url, file_name):
 
 
 def ep_dl_with_pool(pages, ep_url, folder_name):
-	record_log(log_tenma_file_pool, "开始下载", folder_name,"共", pages, "页")
+	record_log(log_tenma_file_pool, "开始下载", folder_name, "共", pages, "页")
 	# p = Pool(pages)
 	createFolder(folder_name)
 	page_rq = request.Request(ep_url)
@@ -271,7 +288,7 @@ def ep_dl_with_pool(pages, ep_url, folder_name):
 		# isDLed = result.get() # 直接获取返回值，去你大爷的callback
 		# record_log(log_tenma_file_pool,"isDLed",isDLed)
 		if isDLed:
-			record_log(log_tenma_file_pool,"图片下载成功",file_name)
+			record_log(log_tenma_file_pool, "图片下载成功", file_name)
 		if not isDLed:
 			shippai += 1
 			record_log(log_tenma_file_pool, "Shippai This Folder:", folder_name, ", pic No:", num, " , URL: ", url)
@@ -297,15 +314,14 @@ def book_dl_with_pool(bookId):
 	# print(len(js["catalog"]["sections"][1]["sections"]))
 	num_of_chap = 0
 	for each_section in js["catalog"]["sections"]:
-		num_of_chap+=1
+		num_of_chap += 1
 		# 多个篇章的文件夹分开装
 		chaptername = each_section["fullTitle"]
-		chap_foldername = dl_dir+bookname+"/"+'{:0>2}'.format(
-				str(num_of_chap)) + "_" + chaptername + '/'  # 格式化文件夹名字，用0补全前面
+		chap_foldername = dl_dir + bookname + "/" + '{:0>2}'.format(
+			str(num_of_chap)) + "_" + chaptername + '/'  # 格式化文件夹名字，用0补全前面
 		# print(len(each_section)) # 因为这个是dict，所以len就是 16（dict里元素个数）
 		# print( each_section )
-		record_log(log_tenma_file_pool,"开始下载篇章",chap_foldername)
-
+		record_log(log_tenma_file_pool, "开始下载篇章", chap_foldername)
 
 		num_of_ep = 0
 		for subsection in each_section["sections"]:
@@ -322,21 +338,22 @@ def book_dl_with_pool(bookId):
 			# print(ep_folder_name,url_one_wa)
 			ep_dl_with_pool(pages, url_one_wa, ep_folder_name)
 
-	# for each in js["catalog"]["sections"][0]["sections"]:
-	# 	num_of_ep += 1
-	# 	if num_of_ep == 2:
-	# 		return
-	# 	bookId = each["bookId"]
-	# 	pages = each["wordCount"]
-	# 	sectionId = each["sectionId"]
-	# 	fullTitle = each["fullTitle"]
-	# 	url_one_wa = "https://manhua.163.com/reader/" + bookId + "/" + sectionId + "/"
-	# 	ep_folder_name = dl_dir + bookname + "/" + '{:0>4}'.format(
-	# 		str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
-	# 	print(url_one_wa)
+		# for each in js["catalog"]["sections"][0]["sections"]:
+		# 	num_of_ep += 1
+		# 	if num_of_ep == 2:
+		# 		return
+		# 	bookId = each["bookId"]
+		# 	pages = each["wordCount"]
+		# 	sectionId = each["sectionId"]
+		# 	fullTitle = each["fullTitle"]
+		# 	url_one_wa = "https://manhua.163.com/reader/" + bookId + "/" + sectionId + "/"
+		# 	ep_folder_name = dl_dir + bookname + "/" + '{:0>4}'.format(
+		# 		str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
+		# 	print(url_one_wa)
 		# ep_dl_with_pool(pages, url_one_wa, ep_folder_name)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
 	# 使用多线程： 用每个线程下载不同的图片（每一话新开pool）
 	# initializeAlready(already_tenma, already_tenma_file)
 	# try_getJson()
@@ -344,5 +361,5 @@ if __name__=="__main__":
 	L_Dart = "4603479161120104695"  # 神契 幻奇谭
 	# getBookName("163", L_Dart)
 	bookid = str(input())
-	initializeAlready(already_tenma_pool,already_tenma_file_pool)
+	initializeAlready(already_tenma_pool, already_tenma_file_pool)
 	book_dl_with_pool(bookid)

@@ -1,8 +1,11 @@
-from urllib import request, parse, error
-import re, json
-import BaseDLer, time, os
-import threading, multiprocessing
-from multiprocessing.pool import Pool
+import json
+import os
+import re
+import threading
+import time
+from urllib import request, error
+
+from paya import BaseDLer
 
 # multiprocessing.Queue
 # sys.path.append("..")
@@ -200,10 +203,56 @@ def try_getJson():
 log_book_file = "book_log.txt"
 
 
-def getBookName(site, content):
-	if site == "163":
+# for each in js["catalog"]["sections"][0]["sections"]:
+# 	num_of_ep += 1
+# 	if num_of_ep == 2:
+# 		return
+# 	bookId = each["bookId"]
+# 	pages = each["wordCount"]
+# 	sectionId = each["sectionId"]
+# 	fullTitle = each["fullTitle"]
+# 	url_one_wa = "https://manhua.163.com/reader/" + bookId + "/" + sectionId + "/"
+# 	ep_folder_name = dl_dir + bookname + "/" + '{:0>4}'.format(
+# 		str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
+# 	print(url_one_wa)
+# ep_dl_with_pool(pages, url_one_wa, ep_folder_name)
+class NetEase_DLer(BaseDLer):
+	# 初始化静态成员：网易地址
+
+	main_site = "https://manhua.163.com/"
+	book_page = "source/"
+	json_page = "book/catalog/"
+
+	log_dir = main_log_dir
+
+	local_tenma_pool = "天才麻将少女_本篇_pool/"
+	already_tenma_pool = set()
+	already_tenma_file_pool = "already_tenma_pool.txt"
+	log_tenma_file_pool = "tenma_log_pool.txt"
+
+	# 一个漫画对应一个
+	def __init__(self, bookid):
+		self.bookname = NetEase_DLer.getBookName(self.bookid)
+		if self.bookname == None:
+			record_log(log_book_file, "未能找到书本", ID_163, self.bookid)
+			return
+		self.dl_path = dl_dir + self.bookname + "/"
+
+		self.already_pic_set = set()
+		self.already_pic_file_name = self.dl_path + ID_163 + main_already_pic_file
+		initializeAlready(self.already_pic_set, self.already_pic_file_name)
+
+		self.already_ep_set = set()  # 记录已下载的话数
+		self.already_ep_file_name = self.dl_path + main_already_ep_file
+		initializeAlready(self.already_ep_set, self.already_ep_file_name)
+
+		self.log_file_name = main_log_dir + self.bookname +
+		self.to_dl_list = []  # 待下载话，为以后选择话数下载准备
+		self.bookid = bookid
+
+	def getBookName(content):  # static method
 		# content => bookId
-		book_url = "https://manhua.163.com/source/" + content
+		book_url = NetEase_DLer.main_site + NetEase_DLer.book_page + content
 		try:
 			response = request.urlopen(book_url)
 			webpage = response.read().decode("utf8")  # 也许人家不是utf8
@@ -218,139 +267,97 @@ def getBookName(site, content):
 			record_log(log_book_file, "获取超时")
 			return None
 
+	def pic_dl_with_pool(self, pic_url, file_name):
+		# Return True: Successfully , False otherwise
+		dl_times = 0
+		while dl_times < self.MAX_DL_TIMES:
+			dl_times += 1
+			try:
+				rq = request.Request(pic_url)  # 也许有机会重用一个对象，因为这里每次都要新建一个
+				# rq.add_header('User-Agent', 'Mozilla/4.0(compatible;MSIE5.5;WindowsNT)')
+				response = request.urlopen(rq, timeout=3000)
+				with open(file_name, "wb") as pic:
+					pic.write(response.read())
+					addToAlready(file_name, already_tenma_pool, already_tenma_file_pool)
+			except error.URLError as t:
+				record_log(log_tenma_file_pool, "下载", file_name, "超时", dl_times, "times")
+			except Exception as e:
+				record_log(log_tenma_file_pool, "其他错误", e)
+			else:
+				return True
+		# record_log(log_tenma_file_pool, "Shippai This Folder:", folder_name, ", pic No:", num, " , URL: ", url)
+		return False
 
-local_tenma_pool = "天才麻将少女_本篇_pool/"
-already_tenma_pool = set()
-already_tenma_file_pool = "already_tenma_pool.txt"
-log_tenma_file_pool = "tenma_log_pool.txt"
-MAX_DL_TIMES = 3
-
-
-def pic_dl_with_pool(pic_url, file_name):
-	# Return True: Successfully , False otherwise
-	dl_times = 0
-	while dl_times < MAX_DL_TIMES:
-		dl_times += 1
-		try:
-			rq = request.Request(pic_url)  # 也许有机会重用一个对象，因为这里每次都要新建一个
-			# rq.add_header('User-Agent', 'Mozilla/4.0(compatible;MSIE5.5;WindowsNT)')
-			response = request.urlopen(rq, timeout=3000)
-			with open(file_name, "wb") as pic:
-				pic.write(response.read())
-				addToAlready(file_name, already_tenma_pool, already_tenma_file_pool)
-		except error.URLError as t:
-			record_log(log_tenma_file_pool, "下载", file_name, "超时", dl_times, "times")
-		except Exception as e:
-			record_log(log_tenma_file_pool, "其他错误", e)
+	def ep_dl_with_pool(self, pages, ep_url, folder_name):
+		record_log(log_tenma_file_pool, "开始下载", folder_name, "共", pages, "页")
+		# p = Pool(pages)
+		createFolder(folder_name)
+		page_rq = request.Request(ep_url)
+		response = request.urlopen(page_rq)
+		str_con = response.read().decode("utf8")
+		patt = re.compile(r"url: window.IS_SUPPORT_WEBP ?.*,?")
+		pics_raw = patt.findall(str_con)
+		num = 0
+		shippai = 0
+		for pics in pics_raw:
+			num += 1
+			url = pics.split(": ")[2]  # 得到地址（分隔后最后一个）
+			url = url[1:len(url) - 2]  # 得到地址（拿来用）
+			file_name = folder_name + '{:0>3}'.format(str(num)) + ".png"
+			if file_name in already_tenma_pool:
+				record_log(log_tenma_file_pool, file_name, "已下载")
+				continue
+			isDLed = pic_dl_with_pool(url, file_name)
+			# result = p.apply_async(pic_dl_with_pool, args=(url, file_name))
+			# isDLed = result.get() # 直接获取返回值，去你大爷的callback
+			# record_log(log_tenma_file_pool,"isDLed",isDLed)
+			if isDLed:
+				record_log(log_tenma_file_pool, "图片下载成功", file_name)
+			if not isDLed:
+				shippai += 1
+				record_log(log_tenma_file_pool, "Shippai This Folder:", folder_name, ", pic No:", num, " , URL: ", url)
+		# p.close()
+		# p.join()
+		if not shippai:
+			record_log(log_tenma_file_pool, folder_name, "下载完成")
 		else:
-			return True
-	# record_log(log_tenma_file_pool, "Shippai This Folder:", folder_name, ", pic No:", num, " , URL: ", url)
-	return False
+			record_log(log_tenma_file_pool, folder_name, shippai, "张图片挂了")
 
+	# def bool_dl_with_pool(json_url):
+	def book_dl_with_pool(self):
+		json_url = "https://manhua.163.com/book/catalog/" + str(self.bookid) + ".json"
+		rq = request.Request(json_url)
+		response = request.urlopen(rq)
+		menu_js = response.read().decode("utf8")
+		js = json.loads(menu_js)
+		# print(type(js["catalog"]["sections"][0]["sections"][0]))
+		# print(len(js["catalog"]["sections"][1]["sections"]))
+		num_of_chap = 0
+		for each_section in js["catalog"]["sections"]:
+			num_of_chap += 1
+			# 多个篇章的文件夹分开装
+			chaptername = each_section["fullTitle"]
+			chap_foldername = dl_dir + bookname + "/" + '{:0>2}'.format(
+				str(num_of_chap)) + "_" + chaptername + '/'  # 格式化文件夹名字，用0补全前面
+			# print(len(each_section)) # 因为这个是dict，所以len就是 16（dict里元素个数）
+			# print( each_section )
+			record_log(log_tenma_file_pool, "开始下载篇章", chap_foldername)
 
-def ep_dl_with_pool(pages, ep_url, folder_name):
-	record_log(log_tenma_file_pool, "开始下载", folder_name, "共", pages, "页")
-	# p = Pool(pages)
-	createFolder(folder_name)
-	page_rq = request.Request(ep_url)
-	response = request.urlopen(page_rq)
-	str_con = response.read().decode("utf8")
-	patt = re.compile(r"url: window.IS_SUPPORT_WEBP ?.*,?")
-	pics_raw = patt.findall(str_con)
-	num = 0
-	shippai = 0
-	for pics in pics_raw:
-		num += 1
-		url = pics.split(": ")[2]  # 得到地址（分隔后最后一个）
-		url = url[1:len(url) - 2]  # 得到地址（拿来用）
-		file_name = folder_name + '{:0>3}'.format(str(num)) + ".png"
-		if file_name in already_tenma_pool:
-			record_log(log_tenma_file_pool, file_name, "已下载")
-			continue
-		isDLed = pic_dl_with_pool(url, file_name)
-		# result = p.apply_async(pic_dl_with_pool, args=(url, file_name))
-		# isDLed = result.get() # 直接获取返回值，去你大爷的callback
-		# record_log(log_tenma_file_pool,"isDLed",isDLed)
-		if isDLed:
-			record_log(log_tenma_file_pool, "图片下载成功", file_name)
-		if not isDLed:
-			shippai += 1
-			record_log(log_tenma_file_pool, "Shippai This Folder:", folder_name, ", pic No:", num, " , URL: ", url)
-	# p.close()
-	# p.join()
-	if not shippai:
-		record_log(log_tenma_file_pool, folder_name, "下载完成")
-	else:
-		record_log(log_tenma_file_pool, folder_name, shippai, "张图片挂了")
+			num_of_ep = 0
+			for subsection in each_section["sections"]:
+				num_of_ep += 1
+				# if num_of_ep == 2:
+				# 	return
+				bookId = subsection["bookId"]
+				pages = subsection["wordCount"]
+				sectionId = subsection["sectionId"]
+				fullTitle = subsection["fullTitle"]
+				url_one_wa = "https://manhua.163.com/reader/" + bookId + "/" + sectionId + "/"
+				ep_folder_name = chap_foldername + '{:0>4}'.format(
+					str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
+				# print(ep_folder_name,url_one_wa)
+				ep_dl_with_pool(pages, url_one_wa, ep_folder_name)
 
-
-# def bool_dl_with_pool(json_url):
-def book_dl_with_pool(bookId):
-	bookname = getBookName("163", bookId)
-	if bookname == None:
-		return record_log(log_book_file, "未能找到书本", 163, bookId)
-	json_url = "https://manhua.163.com/book/catalog/" + str(bookId) + ".json"
-	rq = request.Request(json_url)
-	response = request.urlopen(rq)
-	menu_js = response.read().decode("utf8")
-	js = json.loads(menu_js)
-	# print(type(js["catalog"]["sections"][0]["sections"][0]))
-	# print(len(js["catalog"]["sections"][1]["sections"]))
-	num_of_chap = 0
-	for each_section in js["catalog"]["sections"]:
-		num_of_chap += 1
-		# 多个篇章的文件夹分开装
-		chaptername = each_section["fullTitle"]
-		chap_foldername = dl_dir + bookname + "/" + '{:0>2}'.format(
-			str(num_of_chap)) + "_" + chaptername + '/'  # 格式化文件夹名字，用0补全前面
-		# print(len(each_section)) # 因为这个是dict，所以len就是 16（dict里元素个数）
-		# print( each_section )
-		record_log(log_tenma_file_pool, "开始下载篇章", chap_foldername)
-
-		num_of_ep = 0
-		for subsection in each_section["sections"]:
-			num_of_ep += 1
-			# if num_of_ep == 2:
-			# 	return
-			bookId = subsection["bookId"]
-			pages = subsection["wordCount"]
-			sectionId = subsection["sectionId"]
-			fullTitle = subsection["fullTitle"]
-			url_one_wa = "https://manhua.163.com/reader/" + bookId + "/" + sectionId + "/"
-			ep_folder_name = chap_foldername + '{:0>4}'.format(
-				str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
-			# print(ep_folder_name,url_one_wa)
-			ep_dl_with_pool(pages, url_one_wa, ep_folder_name)
-
-		# for each in js["catalog"]["sections"][0]["sections"]:
-		# 	num_of_ep += 1
-		# 	if num_of_ep == 2:
-		# 		return
-		# 	bookId = each["bookId"]
-		# 	pages = each["wordCount"]
-		# 	sectionId = each["sectionId"]
-		# 	fullTitle = each["fullTitle"]
-		# 	url_one_wa = "https://manhua.163.com/reader/" + bookId + "/" + sectionId + "/"
-		# 	ep_folder_name = dl_dir + bookname + "/" + '{:0>4}'.format(
-		# 		str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
-		# 	print(url_one_wa)
-		# ep_dl_with_pool(pages, url_one_wa, ep_folder_name)
-class NetEase_DLer(BaseDLer):
-	# 初始化静态成员：网易地址
-	main_site = "https://manhua.163.com/"
-	book_page = "reader/"
-	json_page = "book/catalog/"
-
-	# 一个漫画对应一个
-	def __init__(self,bookid):
-		self.already_set = set()
-		self.already_pic_file_name = ""
-		self.already_ep_file_name = "" # 记录已下载的话数
-		self.log_file_name = ""
-		self.to_dl_list = [] # 待下载话，为以后选择话数下载准备
-		self.bookid = bookid
-
-		return
 
 if __name__ == "__main__":
 	# 使用多线程： 用每个线程下载不同的图片（每一话新开pool）
