@@ -12,8 +12,6 @@ from paya.const import *
 # sys.path.append("..")
 # import iMyUtil
 
-dl_dir = ""
-
 already_tenma_file = "already_tenma_json.txt"
 log_tenma_file = "tenma_log_json.txt"
 already_tenma = set()
@@ -31,9 +29,7 @@ def initializeAlready(alreadySet, alreadyFile):
 				alreadySet.add(line)
 			del already_text
 	else:
-		# 未创建，创啊
-		with open(alreadyFile, "w") as f:
-			pass
+		createFile(alreadyFile)
 
 
 lock_already = threading.Lock()
@@ -77,10 +73,17 @@ def createFolder(name):
 		# print(name + " already here.")
 		pass
 	else:
+		print(name + " created.")
 		os.makedirs(name)
-		# print(name + " created.")
 		record_log(log_tenma_file, name + " created.")
 
+def createFile(name):
+	name_list = name.split("/")
+	path = name_list[:-1]
+	file = name_list[-1]
+	createFolder("/".join(path))
+	with open(name,"w") as f:
+		pass
 
 def tema(ep_url, folder_name):
 	# 此处 addtoalready 是加入图片，编号为 #folder_name_#图片编号
@@ -229,15 +232,17 @@ class NetEase_DLer(basedler.BaseDLer):
 	# 一个漫画对应一个
 	def __init__(self, bookid):
 		basedler.BaseDLer.__init__(self)
+		self.can_dl = True
 		self.bookid = bookid # str
 		self.bookname = NetEase_DLer.getBookName(self.bookid)
 		if self.bookname == None:  # 现在还没有本地书库
 			record_log(log_book_file, "未能找到书本", ID_163, self.bookid)
+			self.can_dl = False
 			return
 		self.dl_path = dl_dir + self.bookname + ID_163 + "/"
 		
 		self.already_pic_set = set()
-		self.already_pic_file_name = self.dl_path + ID_163 + main_already_pic_file  # 天才麻将少女/_163_already_pic.txt
+		self.already_pic_file_name = self.dl_path +main_already_pic_file  # 天才麻将少女/_163_already_pic.txt
 		initializeAlready(self.already_pic_set, self.already_pic_file_name)
 		
 		self.already_ep_set = set()  # 记录已下载的话数
@@ -335,7 +340,7 @@ class NetEase_DLer(basedler.BaseDLer):
 			num_of_chap += 1
 			# 多个篇章的文件夹分开装
 			chaptername = each_section["fullTitle"]
-			chap_foldername = dl_dir + self.bookname + "/" + '{:0>2}'.format(
+			chap_foldername = self.dl_path + '{:0>2}'.format(
 				str(num_of_chap)) + "_" + chaptername + '/'  # 格式化文件夹名字，用0补全前面
 			# print(len(each_section)) # 因为这个是dict，所以len就是 16（dict里元素个数）
 			# print( each_section )
@@ -359,7 +364,8 @@ class NetEase_DLer(basedler.BaseDLer):
 					continue
 				self.dl_ep(pages, url_one_wa, ep_folder_name)
 	def startDL(self):
-		self.dl_whole_book()
+		if self.can_dl:
+			self.dl_whole_book()
 
 if __name__ == "__main__":
 	# 使用多线程： 用每个线程下载不同的图片（每一话新开pool）
@@ -368,6 +374,7 @@ if __name__ == "__main__":
 	tenma = "4458002705630123103"
 	L_Dart = "4603479161120104695"  # 神契 幻奇谭
 	# getBookName("163", L_Dart)
-	id_book = str(input())
+	# id_book = str(input())
+	id_book = "4617223306170106339"
 	ne_book = NetEase_DLer(id_book)
 	ne_book.startDL()
