@@ -5,7 +5,9 @@
 # =======================CONSTS==========================
 
 dl_dir = "../"
-main_log_dir = "../log"
+main_log_dir = "../log/"
+
+dl_log_dir = main_log_dir+"dl/"
 # log文件放在一起，已下载每一个单独放在对应文件夹
 
 main_already_pic_file = "already_pic.txt"
