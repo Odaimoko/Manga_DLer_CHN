@@ -4,7 +4,6 @@ import re
 import threading
 import time
 from urllib import request, error
-
 from paya import basedler
 from paya.const import *
 
@@ -73,7 +72,7 @@ def createFolder(name,logfile=None):
 		# print(name + " already here.")
 		pass
 	else:
-		print(name + " created.")
+		# print(name + " created.")
 		os.makedirs(name)
 		if logfile:
 			record_log(logfile, name + " created.")
@@ -210,7 +209,6 @@ def try_getJson():
 
 
 
-log_book_file = "book_log.txt"
 
 
 # for each in js["catalog"]["sections"][0]["sections"]:
@@ -232,7 +230,7 @@ class NetEase_DLer(basedler.BaseDLer):
 	main_site = "https://manhua.163.com/"
 	book_page = "source/"
 	json_page = "book/catalog/"
-	
+	log_book_file = main_log_dir+"book_log.txt"
 
 	# 一个漫画对应一个
 	def __init__(self, bookid):
@@ -241,7 +239,7 @@ class NetEase_DLer(basedler.BaseDLer):
 		self.bookid = bookid  # str
 		self.bookname = NetEase_DLer.getBookName(self.bookid)
 		if self.bookname == None:  # 现在还没有本地书库
-			record_log(log_book_file, "未能找到书本", ID_163, self.bookid)
+			record_log(NetEase_DLer.log_book_file, "未能找到书本", ID_163, self.bookid)
 			self.can_dl = False
 			return
 		self.dl_path = dl_dir + self.bookname + ID_163 + "/"
@@ -267,12 +265,16 @@ class NetEase_DLer(basedler.BaseDLer):
 			# 如果人家换了呢
 			patt = re.compile(r'<p class="book-title">.*</p>')
 			bookname = patt.findall(webpage)
+			# print(bookname)
+			if not bookname:
+				# 空list，说明这个页面不存在漫画，也就是id给错了
+				record_log(NetEase_DLer.log_book_file,"ID错啦，书本不存在。")
+				return None
 			bookname = bookname[0]
 			bookname = bookname.replace('<p class="book-title">', '').replace('</p>', '')
 			return bookname
-			print(bookname)
 		except error.URLError:
-			record_log(log_book_file, "获取超时")
+			record_log(NetEase_DLer.log_book_file, "获取超时，重试看看！~？")
 			return None
 	
 	def dl_pic(self, pic_url, file_name):
@@ -380,15 +382,3 @@ class NetEase_DLer(basedler.BaseDLer):
 		if self.can_dl:
 			self.dl_whole_book()
 
-
-if __name__ == "__main__":
-	# 使用多线程： 用每个线程下载不同的图片（每一话新开pool）
-	# initializeAlready(already_tenma, already_tenma_file)
-	# try_getJson()
-	tenma = "4458002705630123103"
-	L_Dart = "4603479161120104695"  # 神契 幻奇谭
-	# getBookName("163", L_Dart)
-	# id_book = str(input())
-	id_book = "4617223306170106339"
-	ne_book = NetEase_DLer(id_book)
-	ne_book.startDL()
