@@ -65,7 +65,7 @@ def record_log(logFileName, *src):
 		lock_log_file.release()
 
 
-def createFolder(name):
+def createFolder(name,logfile=None):
 	import os
 	name = name.strip().rstrip("/")
 	exist = os.path.exists(name)
@@ -75,15 +75,21 @@ def createFolder(name):
 	else:
 		print(name + " created.")
 		os.makedirs(name)
-		record_log(log_tenma_file, name + " created.")
+		if logfile:
+			record_log(logfile, name + " created.")
 
-def createFile(name):
+
+def createFile(name,logfile=None):
+	import os
+	if os.path.exists(name):
+		return
 	name_list = name.split("/")
 	path = name_list[:-1]
 	file = name_list[-1]
-	createFolder("/".join(path))
-	with open(name,"w") as f:
+	createFolder("/".join(path),logfile)
+	with open(name, "w") as f:
 		pass
+
 
 def tema(ep_url, folder_name):
 	# 此处 addtoalready 是加入图片，编号为 #folder_name_#图片编号
@@ -227,13 +233,12 @@ class NetEase_DLer(basedler.BaseDLer):
 	book_page = "source/"
 	json_page = "book/catalog/"
 	
-	log_dir = main_log_dir
-	
+
 	# 一个漫画对应一个
 	def __init__(self, bookid):
 		basedler.BaseDLer.__init__(self)
 		self.can_dl = True
-		self.bookid = bookid # str
+		self.bookid = bookid  # str
 		self.bookname = NetEase_DLer.getBookName(self.bookid)
 		if self.bookname == None:  # 现在还没有本地书库
 			record_log(log_book_file, "未能找到书本", ID_163, self.bookid)
@@ -242,14 +247,15 @@ class NetEase_DLer(basedler.BaseDLer):
 		self.dl_path = dl_dir + self.bookname + ID_163 + "/"
 		
 		self.already_pic_set = set()
-		self.already_pic_file_name = self.dl_path +main_already_pic_file  # 天才麻将少女/_163_already_pic.txt
+		self.already_pic_file_name = self.dl_path + main_already_pic_file  # 天才麻将少女/_163_already_pic.txt
 		initializeAlready(self.already_pic_set, self.already_pic_file_name)
 		
 		self.already_ep_set = set()  # 记录已下载的话数
 		self.already_ep_file_name = self.dl_path + main_already_ep_file
 		initializeAlready(self.already_ep_set, self.already_ep_file_name)
 		
-		self.log_file_name = main_log_dir + self.bookname + ID_163 + main_log_file  # log/天才麻将少女_163_log.txt
+		self.log_file_name = dl_log_dir + self.bookname + ID_163 + main_log_file  # log/天才麻将少女_163_log.txt
+		createFile(self.log_file_name)
 		self.to_dl_list = set()  # 待下载话，为以后选择话数下载准备
 	
 	def getBookName(content):  # static method
@@ -293,7 +299,7 @@ class NetEase_DLer(basedler.BaseDLer):
 	def dl_ep(self, pages, ep_url, folder_name):
 		record_log(self.log_file_name, "开始下载", folder_name, "共", pages, "页")
 		# p = Pool(pages)
-		createFolder(folder_name)
+		createFolder(folder_name,self.log_file_name)
 		page_rq = request.Request(ep_url)
 		response = request.urlopen(page_rq)
 		str_con = response.read().decode("utf8")
@@ -305,7 +311,7 @@ class NetEase_DLer(basedler.BaseDLer):
 			num += 1
 			url = pics.split(": ")[2]  # 得到地址（分隔后最后一个）
 			url = url[1:len(url) - 2]  # 得到地址（拿来用）
-			file_name = folder_name + '{:0>3}'.format(str(num)) + ".jpg" # 还是说其他格式？
+			file_name = folder_name + '{:0>3}'.format(str(num)) + ".jpg"  # 还是说其他格式？
 			if file_name in self.already_pic_set:
 				record_log(self.log_file_name, file_name, "已下载")
 				continue
@@ -336,18 +342,24 @@ class NetEase_DLer(basedler.BaseDLer):
 		# print(type(js["catalog"]["sections"][0]["sections"][0]))
 		# print(len(js["catalog"]["sections"][1]["sections"]))
 		num_of_chap = 0
-		for each_section in js["catalog"]["sections"]:
+		chapters = js["catalog"]["sections"]
+		for chapter in chapters:
+			# chapter 是一个json，dict。 有 16 个key
 			num_of_chap += 1
 			# 多个篇章的文件夹分开装
-			chaptername = each_section["fullTitle"]
-			chap_foldername = self.dl_path + '{:0>2}'.format(
-				str(num_of_chap)) + "_" + chaptername + '/'  # 格式化文件夹名字，用0补全前面
-			# print(len(each_section)) # 因为这个是dict，所以len就是 16（dict里元素个数）
-			# print( each_section )
+			chaptername = chapter["fullTitle"]
+			# 如果只有一个chapter，就不分开
+			if len(chapters) == 1:
+				chap_foldername = self.dl_path
+			else:
+				chap_foldername = self.dl_path + '{:0>2}'.format(
+					str(num_of_chap)) + "_" + chaptername + '/'  # 格式化文件夹名字，用0补全前面
+			# print(len(chapter)) # 因为这个是dict，所以len就是 16（dict里元素个数）
+			# print( chapter )
 			record_log(self.log_file_name, "开始下载篇章", chap_foldername)
 			
 			num_of_ep = 0
-			for subsection in each_section["sections"]:
+			for subsection in chapter["sections"]:
 				num_of_ep += 1
 				# if num_of_ep == 2:
 				# 	return
@@ -363,9 +375,11 @@ class NetEase_DLer(basedler.BaseDLer):
 					record_log(self.log_file_name, ep_folder_name, "已下载")
 					continue
 				self.dl_ep(pages, url_one_wa, ep_folder_name)
+
 	def startDL(self):
 		if self.can_dl:
 			self.dl_whole_book()
+
 
 if __name__ == "__main__":
 	# 使用多线程： 用每个线程下载不同的图片（每一话新开pool）
