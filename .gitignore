@@ -1,4 +1,4 @@
-*.py[cod]
+﻿*.py[cod]
 
 # C extensions
 *.so
@@ -41,3 +41,6 @@ noth.py
 # log 文件
 *.txt
 神契 幻奇谭/
+咲慕流年/
+月刊少女野崎君/
+开始.bat
