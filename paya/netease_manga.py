@@ -5,8 +5,8 @@ import threading
 import time
 from urllib import request, error
 
-from paya import BaseDLer
-from .const import *
+from paya import basedler
+from paya.const import *
 
 # multiprocessing.Queue
 # sys.path.append("..")
@@ -217,7 +217,7 @@ log_book_file = "book_log.txt"
 # 		str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
 # 	print(url_one_wa)
 # ep_dl_with_pool(pages, url_one_wa, ep_folder_name)
-class NetEase_DLer(BaseDLer):
+class NetEase_DLer(basedler.BaseDLer):
 	# 初始化静态成员：网易地址
 	
 	main_site = "https://manhua.163.com/"
@@ -228,7 +228,8 @@ class NetEase_DLer(BaseDLer):
 	
 	# 一个漫画对应一个
 	def __init__(self, bookid):
-		self.bookid = bookid
+		basedler.BaseDLer.__init__(self)
+		self.bookid = bookid # str
 		self.bookname = NetEase_DLer.getBookName(self.bookid)
 		if self.bookname == None:  # 现在还没有本地书库
 			record_log(log_book_file, "未能找到书本", ID_163, self.bookid)
@@ -263,14 +264,14 @@ class NetEase_DLer(BaseDLer):
 			record_log(log_book_file, "获取超时")
 			return None
 	
-	def pic_dl_with_pool(self, pic_url, file_name):
+	def dl_pic(self, pic_url, file_name):
 		# Return True: Successfully , False otherwise
 		dl_times = 0
 		while dl_times < self.MAX_DL_TIMES:
 			dl_times += 1
+			rq = request.Request(pic_url)  # 也许有机会重用一个对象，因为这里每次都要新建一个
+			# rq.add_header('User-Agent', 'Mozilla/4.0(compatible;MSIE5.5;WindowsNT)')
 			try:
-				rq = request.Request(pic_url)  # 也许有机会重用一个对象，因为这里每次都要新建一个
-				# rq.add_header('User-Agent', 'Mozilla/4.0(compatible;MSIE5.5;WindowsNT)')
 				response = request.urlopen(rq, timeout=3000)
 				with open(file_name, "wb") as pic:
 					pic.write(response.read())
@@ -284,7 +285,7 @@ class NetEase_DLer(BaseDLer):
 		# record_log(self.log_file_name, "Shippai This Folder:", folder_name, ", pic No:", num, " , URL: ", url)
 		return False
 	
-	def ep_dl_with_pool(self, pages, ep_url, folder_name):
+	def dl_ep(self, pages, ep_url, folder_name):
 		record_log(self.log_file_name, "开始下载", folder_name, "共", pages, "页")
 		# p = Pool(pages)
 		createFolder(folder_name)
@@ -299,11 +300,11 @@ class NetEase_DLer(BaseDLer):
 			num += 1
 			url = pics.split(": ")[2]  # 得到地址（分隔后最后一个）
 			url = url[1:len(url) - 2]  # 得到地址（拿来用）
-			file_name = folder_name + '{:0>3}'.format(str(num)) + ".png"
+			file_name = folder_name + '{:0>3}'.format(str(num)) + ".jpg" # 还是说其他格式？
 			if file_name in self.already_pic_set:
 				record_log(self.log_file_name, file_name, "已下载")
 				continue
-			isDLed = self.pic_dl_with_pool(url, file_name)
+			isDLed = self.dl_pic(url, file_name)
 			# result = p.apply_async(pic_dl_with_pool, args=(url, file_name))
 			# isDLed = result.get() # 直接获取返回值，去你大爷的callback
 			# record_log(self.log_file_name,"isDLed",isDLed)
@@ -321,8 +322,8 @@ class NetEase_DLer(BaseDLer):
 		else:
 			record_log(self.log_file_name, folder_name, shippai, "张图片挂了")
 
-	def book_dl_with_pool(self):
-		json_url = "https://manhua.163.com/book/catalog/" + str(self.bookid) + ".json"
+	def dl_whole_book(self):
+		json_url = "https://manhua.163.com/book/catalog/" + self.bookid + ".json"
 		rq = request.Request(json_url)
 		response = request.urlopen(rq)
 		menu_js = response.read().decode("utf8")
@@ -353,8 +354,12 @@ class NetEase_DLer(BaseDLer):
 				ep_folder_name = chap_foldername + '{:0>4}'.format(
 					str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
 				# print(ep_folder_name,url_one_wa)
-				self.ep_dl_with_pool(pages, url_one_wa, ep_folder_name)
-
+				if ep_folder_name in self.already_ep_set:
+					record_log(self.log_file_name, ep_folder_name, "已下载")
+					continue
+				self.dl_ep(pages, url_one_wa, ep_folder_name)
+	def startDL(self):
+		self.dl_whole_book()
 
 if __name__ == "__main__":
 	# 使用多线程： 用每个线程下载不同的图片（每一话新开pool）
@@ -363,6 +368,6 @@ if __name__ == "__main__":
 	tenma = "4458002705630123103"
 	L_Dart = "4603479161120104695"  # 神契 幻奇谭
 	# getBookName("163", L_Dart)
-	bookid = str(input())
-	initializeAlready(self.already_pic_set, self.already_pic_file_name)
-	book_dl_with_pool(bookid)
+	id_book = str(input())
+	ne_book = NetEase_DLer(id_book)
+	ne_book.startDL()
