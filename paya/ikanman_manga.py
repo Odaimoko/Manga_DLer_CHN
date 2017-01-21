@@ -7,6 +7,7 @@ from urllib import request, error
 from paya import basedler
 from paya.const import *
 
+
 class ikanman_DLer(basedler.BaseDLer):
 	main_site = "http://www.ikanman.com/"
 	book_page = "comic/"
@@ -50,14 +51,13 @@ class ikanman_DLer(basedler.BaseDLer):
 				return None
 			bookname = bookname[0]
 			end = bookname.find('</h1')
-			start=bookname.find('<h1>')
-			bookname=bookname[start+4:end]
+			start = bookname.find('<h1>')
+			bookname = bookname[start + 4:end]
 			# print(bookname)
 			return bookname
 		except error.URLError:
 			record_log(ikanman_DLer.log_book_file, "获取", content, "超时，重试看看！~？")
 			return None
-
 
 	def dl_ep(self, pages, ep_url, folder_name):
 		record_log(self.log_file_name, "开始下载", folder_name, "共", pages, "页")
@@ -98,28 +98,109 @@ class ikanman_DLer(basedler.BaseDLer):
 
 	def dl_whole_book(self):
 		# 怎么样只用response一次？getBookname里面也有一次。 或者存下来，之后删掉。
-		# book_url = ikanman_DLer.main_site + ikanman_DLer.book_page + self.bookid +"/"
-		book_url = "file:///C:/Users/%E5%BD%B1%E9%A3%8E%E7%A7%A6/Desktop/%E7%A5%9E%E5%A5%87%E5%AE%9D%E8%B4%9D%E7%89%B9%E5%88%AB%E7%AF%87%E6%BC%AB%E7%94%BB%E6%9C%AA%E4%BF%AE%E6%94%B9.html"
+		book_url = ikanman_DLer.main_site + ikanman_DLer.book_page + self.bookid +"/"
+		# book_url = "file:///C:/Users/%E5%BD%B1%E9%A3%8E%E7%A7%A6/Desktop/%E7%A5%9E%E5%A5%87%E5%AE%9D%E8%B4%9D%E7%89%B9%E5%88%AB%E7%AF%87%E6%BC%AB%E7%94%BB%E6%9C%AA%E4%BF%AE%E6%94%B9.html"
 		# book_url = "file:///C:/Users/%E5%BD%B1%E9%A3%8E%E7%A7%A6/Desktop/%E7%A5%9E%E5%A5%87%E5%AE%9D%E8%B4%9D%E7%89%B9%E5%88%AB%E7%AF%87%E6%BC%AB%E7%94%BB_.html"
 		# print(book_url)
 		rq = request.Request(book_url)
 		response = request.urlopen(rq)
 		str_con = response.read().decode("utf8")
 		from bs4 import BeautifulSoup
-		soup = BeautifulSoup(str_con,"html.parser")
+		soup = BeautifulSoup(str_con, "html.parser")
 
-		for c in soup.find_all("h4"):
-			print(type(c))
-			print("   ",type(c.next_sibling))
-			print(c.next_sibling.name)
-			# for l in  c.children:
-			# 	print(l)
-			# print(c.descendants)
-		# for string in soup.stripped_strings:
-		# 	print(repr(string))
+		first_chap = soup.h4
+		# print(first_chap)
+		h4_and_div = [first_chap] + [tag for tag in first_chap.next_siblings]
+		chapters = []
+		divs = []
+		for block in h4_and_div:
+			# print(type(block.name))
+			if block.name == "h4":
+				chapter_name = block.contents[0].contents[0]
+				chapter_name = str(chapter_name)
+				chapters.append(chapter_name)
+			elif block.name == "div":
+				class_con = block["class"]
+				if "chapter-list" in class_con:
+					divs.append(block)  # 应该不会有一个chapter对应多个的list的吧 = =
+		# print(chapters) # str
+		# print(divs) # divs
+		num_of_chap = 0
+		chapters.reverse()
+		divs.reverse()
+		for i,div in enumerate(divs):
+			num_of_chap += 1
+			chaptername = chapters[i]
 
 
-			# for chapter in chapters:
+			if len(chapters) == 1:
+				chap_foldername = self.dl_path
+			else:
+				chap_foldername = self.dl_path + '{:0>2}'.format(
+					str(num_of_chap)) + "_" + chaptername + '/'  # 格式化文件夹名字，用0补全前面
+
+			# eps = []
+			uls = div.contents  # uls的顺序正确，内部顺序反过来
+			num_of_ep = 0
+			for ul in uls:
+				lis = ul.contents
+				lis.reverse()
+				for li in lis:  # 这就是真的每一话了，需要 href=对应每一话地址 title名字 i 数量
+					num_of_ep+=1
+					a = li.a
+
+					ep_url = ikanman_DLer.main_site + a["href"]  # a[href]是/comic/6540/163709.html
+					i_con = li.i.contents  # NaviString
+					pages = str(i_con[0])[:-1]
+					pages = int(pages)
+					fullTitle = a["title"]
+					ep_folder_name = chap_foldername + '{:0>4}'.format(
+						str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
+					print(ep_folder_name,ep_url)
+				# print(a["href"])
+				# print(type(a["href"]))
+				# print(pages)
+3
+				# eps += lis
+			# chapter_lis.append(eps)
+		# print(len(ul.contents))
+		# for li in chapter_lis:
+		# 	print(li)
+		# ========= 获取每一话的对应信息 ===========
+
+		# chapters = soup.find_all("h4") # <class 'bs4.element.ResultSet'>
+		# chapters.reverse() # 他是从新到旧，但我编号要从旧到新
+		# for c in chapters:
+		# 	# 全部的chapter信息 每一个的都是 <class 'bs4.element.Tag'>
+		# 	#形式为 <h4><span>单话</span></h4>
+		# 	chapter_name = c.contents[0].contents[0] # 得到 单话 <class 'bs4.element.NavigableString'>
+		# 	chapter_name = str(chapter_name)
+		# 	print(str(chapter_name))
+		# chapters = [str(c.contents[0].contents[0]) for c in chapters]
+		# # 每一话h4的下一个兄弟是一个div，这个div里面只有一个元素ul【第一个contents】
+		# # xxx 可以多个ul，他一一页装不下太多了，所以翻了页。解析就for的时候reverse他。
+		# # ul里面每一个li【第二个contents】就是每一话
+		# div = [c.next_sibling  for c in chapters]
+		# uls = [d.contents for d in div]
+		# print(len(uls))
+		# for u in uls:
+		# 	# u.reverse()
+		# 	print(u)
+		# 	# for li in u:
+		# 	# 	print(len(li.contents))
+		#
+		# 	# for ds in c.next_siblings:
+		# 	# 	print("   ",c.name,ds)
+		# 	# print("   ",type(c.next_sibling))
+		# 	# print(c.next_sibling.name)
+		# 	# for l in  c.children:
+		# 	# 	print(l)
+		# 	# print(c.descendants)
+		# # for string in soup.stripped_strings:
+		# # 	print(repr(string))
+
+
+		# for chapter in chapters:
 		# 	# chapter 是一个json，dict。 有 16 个key
 		# 	num_of_chap += 1
 		# 	# 多个篇章的文件夹分开装
@@ -151,4 +232,3 @@ class ikanman_DLer(basedler.BaseDLer):
 		# 			record_log(self.log_file_name, ep_folder_name, "已下载")
 		# 			continue
 		# 		self.dl_ep(pages, url_one_wa, ep_folder_name)
-
