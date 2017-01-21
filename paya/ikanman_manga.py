@@ -7,7 +7,6 @@ from urllib import request, error
 from paya import basedler
 from paya.const import *
 
-
 class ikanman_DLer(basedler.BaseDLer):
 	main_site = "http://www.ikanman.com/"
 	book_page = "comic/"
@@ -81,9 +80,20 @@ class ikanman_DLer(basedler.BaseDLer):
 				st = str(s.string)
 				if script_symbol in st:
 					script = st
+					break
 
-		print(script)
-		# 总之已经获取到加密后的JS了。
+		# print(script)
+		# 总之已经获取到加密后的JS了。 其实可以直接第五个？
+		# 假定现在已经获取了解密后的    ========= 已经获取了！！！！！！！！！！！！！！
+		# 如果可以，还是加载页面上的比较好
+		with open("ikm_Kai_mitsu.js", "rb") as f:
+			kaimitsu_js = f.read().decode("utf8")
+		import js2py
+		print( script[5:-2])
+
+		decrypt_result = js2py.eval_js(js_lib_by_py + kaimitsu_js +  script[5:-2])
+		print(decrypt_result)#.to_dict()) # <class 'js2py.base.JsObjectWrapper'>
+
 	# patt = re.compile(r"url: window.IS_SUPPORT_WEBP ?.*,?")
 	# pics_raw = patt.findall(str_con)
 	# num = 0

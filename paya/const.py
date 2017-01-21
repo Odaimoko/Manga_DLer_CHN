@@ -1,4 +1,4 @@
-import threading, time, os
+import threading, time, os,re
 
 # multiprocessing.Queue
 # sys.path.append("..")
@@ -20,7 +20,7 @@ ID_163 = "_163_"
 ID_ikm = "_iKanMan_"
 
 
-#
+# FUNCS
 
 
 def initializeAlready(alreadySet, alreadyFile):
@@ -94,3 +94,44 @@ def createFile(name, logfile=None):
 	with open(name, "w") as f:
 		pass
 	return True
+
+
+def hex2dec(string_num):
+	return int(string_num.upper(), 16)
+
+
+def url_utf8tostr(url):
+	find_utf8 = re.compile(r"%\w\w")
+	chinese = find_utf8.findall(url)
+	# print("chinese",chinese)
+	if not chinese:  # if there's no %\w\w, which means all is chars chinese will be an empty list
+		return url
+	chars = []
+	for char in chinese:
+		chars.append(hex2dec(char[1:]))
+	chars = bytes(chars).decode("utf8")
+	real_url = ""
+	ind = 0
+	i=0
+	for c in url:
+		if i > 0:
+			i-=1
+			continue
+		if c == "%":
+			real_url += chars[ind]
+			ind += 1
+			i += 8 # 1个utf8是9位，所以后面8个都不看
+		else:
+			real_url += c
+	return real_url
+
+
+
+# OTHERS
+
+js_lib_by_py = """
+var escape = function(text){pyimport urllib; return urllib.parse.quote(text)};
+var unescape = function(text){pyimport urllib; return urllib.parse.unquote(text)};
+var encodeURIComponent = function(text){pyimport urllib; return urllib.parse.quote(text, safe='~()*!.\\'')};
+var decodeURIComponent = unescape;
+"""
