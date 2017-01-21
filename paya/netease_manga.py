@@ -18,78 +18,6 @@ local_tenma = "天才麻将少女_本篇_json/"
 num_of_threads = 4
 
 
-def initializeAlready(alreadySet, alreadyFile):
-	exist = os.path.exists(alreadyFile)
-	if exist:
-		with open(alreadyFile, "rb") as f:
-			already_text = f.read().decode("utf8")
-			for line in already_text.splitlines():
-				# 记录全部url，包括http:// 和末尾的/
-				alreadySet.add(line)
-			del already_text
-	else:
-		createFile(alreadyFile)
-
-
-lock_already = threading.Lock()
-lock_log_file = threading.Lock()
-
-
-def addToAlready(content, alreadySet, alreadyFileName):
-	if content in alreadySet:
-		return
-	lock_already.acquire()
-	try:
-		alreadySet.add(content)
-		with open(alreadyFileName, "ab") as al:
-			al.write(str(content).encode("utf8"))
-			al.write("\n".encode())
-	finally:
-		lock_already.release()
-
-
-def record_log(logFileName, *src):
-	lock_log_file.acquire()
-	try:
-		print(*src)
-		with open(logFileName, "ab") as lo:
-			# 解决直接write出现 encode 错误，还是手动encode+写入二进制
-			lo.write(str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())).encode())
-			lo.write(":".encode())
-			for s in src:
-				lo.write(" ".encode())
-				lo.write(str(s).encode())
-			lo.write("\n".encode())
-	finally:
-		lock_log_file.release()
-
-
-def createFolder(name,logfile=None):
-	import os
-	name = name.strip().rstrip("/")
-	exist = os.path.exists(name)
-	if exist:
-		# print(name + " already here.")
-		pass
-	else:
-		# print(name + " created.")
-		os.makedirs(name)
-		if logfile:
-			record_log(logfile, name + " created.")
-
-
-def createFile(name,logfile=None):
-	import os
-	if os.path.exists(name):
-		return
-	name_list = name.split("/")
-	path = name_list[:-1]
-	file = name_list[-1]
-	createFolder("/".join(path),logfile)
-	with open(name, "w") as f:
-		pass
-
-
 def tema(ep_url, folder_name):
 	# 此处 addtoalready 是加入图片，编号为 #folder_name_#图片编号
 	
@@ -235,7 +163,6 @@ class NetEase_DLer(basedler.BaseDLer):
 	# 一个漫画对应一个
 	def __init__(self, bookid):
 		basedler.BaseDLer.__init__(self)
-		self.can_dl = True
 		self.bookid = bookid  # str
 		self.bookname = NetEase_DLer.getBookName(self.bookid)
 		if self.bookname == None:  # 现在还没有本地书库
@@ -244,11 +171,9 @@ class NetEase_DLer(basedler.BaseDLer):
 			return
 		self.dl_path = dl_dir + self.bookname + ID_163 + "/"
 		
-		self.already_pic_set = set()
 		self.already_pic_file_name = self.dl_path + main_already_pic_file  # 天才麻将少女/_163_already_pic.txt
 		initializeAlready(self.already_pic_set, self.already_pic_file_name)
 		
-		self.already_ep_set = set()  # 记录已下载的话数
 		self.already_ep_file_name = self.dl_path + main_already_ep_file
 		initializeAlready(self.already_ep_set, self.already_ep_file_name)
 		
@@ -268,7 +193,7 @@ class NetEase_DLer(basedler.BaseDLer):
 			# print(bookname)
 			if not bookname:
 				# 空list，说明这个页面不存在漫画，也就是id给错了
-				record_log(NetEase_DLer.log_book_file,"ID错啦，书本不存在。")
+				record_log(NetEase_DLer.log_book_file,"书本ID错啦，不存在。")
 				return None
 			bookname = bookname[0]
 			bookname = bookname.replace('<p class="book-title">', '').replace('</p>', '')
@@ -313,7 +238,7 @@ class NetEase_DLer(basedler.BaseDLer):
 			num += 1
 			url = pics.split(": ")[2]  # 得到地址（分隔后最后一个）
 			url = url[1:len(url) - 2]  # 得到地址（拿来用）
-			file_name = folder_name + '{:0>3}'.format(str(num)) + ".jpg"  # 还是说其他格式？
+			file_name = folder_name + '{:0>3}'.format(str(num)) + ".png"  # 还是说其他格式？
 			if file_name in self.already_pic_set:
 				record_log(self.log_file_name, file_name, "已下载")
 				continue
@@ -378,7 +303,4 @@ class NetEase_DLer(basedler.BaseDLer):
 					continue
 				self.dl_ep(pages, url_one_wa, ep_folder_name)
 
-	def startDL(self):
-		if self.can_dl:
-			self.dl_whole_book()
 
