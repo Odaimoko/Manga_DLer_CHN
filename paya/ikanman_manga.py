@@ -120,7 +120,8 @@ class ikanman_DLer(basedler.BaseDLer):
 		# 	right_slash_num -= 1
 		# print("after ")
 		# print("no92", str(bytes(wrong_bytes_decimal).decode("utf8")))
-		di = js2py.eval_js(eval_result).list()
+		di = js2py.eval_js(eval_result)
+		print(str( di))
 
 	# for it in di["files"]:
 	# 	print(it)
