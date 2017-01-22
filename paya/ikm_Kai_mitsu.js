@@ -87,7 +87,7 @@ function(n, t) {
     },
     o = e.Latin1 = {
         stringify: function(n) {
-			console.log("stringifyLatin1")
+			// console.log("stringifyLatin1")
             var r = n.words,
             i, t;
             for (n = n.sigBytes, i = [], t = 0; t < n; t++) i.push(String.fromCharCode(r[t >>> 2] >>> 24 - 8 * (t % 4) & 255));
@@ -1110,7 +1110,7 @@ function decryptDES(t) {
 		padding: CryptoJS.pad.Pkcs7
 	});
 	// console.log(decrypted.toString(CryptoJS.enc.Utf8));
-	cl()
+	// cl()
 	var s =  CryptoJS.enc.Utf8.stringify(decrypted);
 	// cl("这里即将返回");
 	// rs = decodeURIComponent(s);

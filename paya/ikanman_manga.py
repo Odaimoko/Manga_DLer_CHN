@@ -3,7 +3,7 @@ import os
 import re
 import threading
 import time
-from urllib import request, error
+from urllib import request, error, parse
 from paya import basedler
 from paya.const import *
 
@@ -11,13 +11,16 @@ from paya.const import *
 class ikanman_DLer(basedler.BaseDLer):
 	main_site = "http://www.ikanman.com/"
 	book_page = "comic/"
+	dl_site = ["http://i.hamreus.com:8080", "http://p.yogajx.com/"]  # 下载地址path自带/
+	# 它的图床还有可能不一样= =估计是到了比较新的漫画（或者比较新的章节）
+
 	log_book_file = main_log_dir + "book_log.txt"
 
 	def __init__(self, bookid):
 		basedler.BaseDLer.__init__(self)
 		self.bookid = bookid  # str
 		self.bookname = ikanman_DLer.getBookName(self.bookid)
-		if self.bookname == None:  # 现在还没有本地书库
+		if self.bookname is None:  # 现在还没有本地书库
 			record_log(ikanman_DLer.log_book_file, "未能找到书本", ID_ikm, self.bookid)
 			self.can_dl = False
 			return
@@ -31,6 +34,8 @@ class ikanman_DLer(basedler.BaseDLer):
 
 		self.log_file_name = dl_log_dir + self.bookname + ID_ikm + main_log_file  # log/天才麻将少女_163_log.txt
 		createFile(self.log_file_name)
+
+
 		self.to_dl_list = set()  # 待下载话，为以后选择话数下载准备
 
 	def getBookName(content):  # static method
@@ -60,7 +65,7 @@ class ikanman_DLer(basedler.BaseDLer):
 			return None
 
 	def dl_ep(self, pages, ep_url, folder_name):
-
+		# folder_name是这一章的目录
 		script_symbol = "eval(decryptDES"
 
 		record_log(self.log_file_name, "开始下载", folder_name, "共", pages, "页")
@@ -86,23 +91,25 @@ class ikanman_DLer(basedler.BaseDLer):
 		# print(script)
 		# 总之已经获取到加密后的JS了。 其实可以直接第五个？
 		# 假定现在已经获取了解密后的    ========= 已经获取了！！！！！！！！！！！！！！
-		# 如果可以，还是加载页面上的比较好
+		# 如果可以，还是加载页面上的比较好 xxxx 如果重新洗一个encodeURIConnection
 		with open("ikm_Kai_mitsu.js", "rb") as f:
 			kaimitsu_js = f.read().decode("utf8")
-		import js2py
 
+		import js2py
 		decrypt_result = js2py.eval_js(js_lib_by_py + kaimitsu_js + script)
 		# print(type(decrypt_result)) # <class 'str'>
-		print("decrypt_result",decrypt_result)
-		# 应该在这里就修正decrypt_result 应该是，EX ASCII的
+		# print("decrypt_result",decrypt_result)
+		# 应该在这里就修正decrypt_result EX ASCII的
 		true_list = [ord(c) for c in decrypt_result]
 		# print("real encode", bytes(true_list))
 		true_result = bytes(true_list).decode("utf8")
-		print("true result",true_result)
+		# print("true result",true_result)
 		eval_result = js2py.eval_js(true_result)
 
 		print(type(eval_result))  # <class 'js2py.base.JsObjectWrapper'>
-		print("eval_result", eval_result)
+		""""
+		Deprecated
+		# print("eval_result", eval_result) # 应该是纯返回值，也就是一个dict
 		# Plaintext = str(eval_result)
 		# b = bytes(Plaintext.encode("utf8"))
 		# print(b)
@@ -119,9 +126,34 @@ class ikanman_DLer(basedler.BaseDLer):
 		# 	wrong_bytes_decimal = wrong_bytes_decimal[:pos_92] + [real] + wrong_bytes_decimal[pos_92 + 4:]
 		# 	right_slash_num -= 1
 		# print("after ")
-		# print("no92", str(bytes(wrong_bytes_decimal).decode("utf8")))
-		di = js2py.eval_js(eval_result)
-		print(str( di))
+		# print("no92", str(bytes(wrong_bytes_decimal).decode("utf8")))"""
+
+		# di = js2py.eval_js(eval_result)
+		#  既然是个js的obj（dict），那么自然也就没有None和False了，eval_result已经是字符串
+		# 类似于 {'path': '/ps3/z/镇魂街[许辰]/番外篇1/', 'burl': None, 'finished': False,
+		# 'cname': '番外篇1', 'len': 12, 'status': 1, 'bid': 9082, 'bpic': '9082.jpg',
+		# 'cid': 90440, 'files': ['001.jpg.webp', '002.jpg.webp'], 'bname': '镇魂街'}
+		# 不应再次eval，而应该直接当作dict来直接获取里面的元素
+		q = parse.quote
+		files = eval_result["files"]
+		# print(files) # 一个list(str)
+		path = eval_result["path"]
+		title = eval_result["bname"]
+		subtitle = eval_result["cname"]
+		dl_prefix = [dlsite + q(path) for dlsite in ikanman_DLer.dl_site]
+		for num, file in enumerate(files):
+			num += 1  # won't change
+			pic_url = [prefix + q(file) for prefix in dl_prefix]
+			# pic_url=[parse.quote(url) for url in pic_url]
+			file_name = folder_name + '{:0>3}'.format(str(num)) + ".jpg"  # 还是说其他格式？
+			if file_name in self.already_pic_set:
+				record_log(self.log_file_name, file_name, "已下载")
+				continue
+			# print(file_name, pic_url)
+			# 必须把汉字转成utf8流
+			# 其他错误 'ascii' codec can't encode characters in position 31-33: ordinal not in range(128)
+			self.dl_pic(pic_url, file_name)
+		addToAlready(folder_name, self.already_ep_set, self.already_ep_file_name)
 
 	# for it in di["files"]:
 	# 	print(it)
