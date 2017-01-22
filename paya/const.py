@@ -125,6 +125,20 @@ def url_utf8tostr(url):
 			real_url += c
 	return real_url
 
+def encodeURIComponent(to):
+	# to = "一步"
+	bs = to.encode()
+	result = ""
+	for l in list(bs):
+		result+=(hex(l)).replace("0x",'%')
+	return result.upper()
+
+def writeTo(content,file=None):
+	if not file:
+		with open("temp.txt","w") as f:
+			f.write(str(content))
+			f.write("\n")
+
 
 
 # OTHERS
