@@ -202,26 +202,26 @@ class NetEase_DLer(basedler.BaseDLer):
 			record_log(NetEase_DLer.log_book_file, "获取超时，重试看看！~？")
 			return None
 	
-	def dl_pic(self, pic_url, file_name):
-		# Return True: Successfully , False otherwise
-		dl_times = 0
-		while dl_times < self.MAX_DL_TIMES:
-			dl_times += 1
-			rq = request.Request(pic_url)  # 也许有机会重用一个对象，因为这里每次都要新建一个
-			# rq.add_header('User-Agent', 'Mozilla/4.0(compatible;MSIE5.5;WindowsNT)')
-			try:
-				response = request.urlopen(rq, timeout=3000)
-				with open(file_name, "wb") as pic:
-					pic.write(response.read())
-					addToAlready(file_name, self.already_pic_set, self.already_pic_file_name)
-			except error.URLError as t:
-				record_log(self.log_file_name, "下载", file_name, "超时", dl_times, "times")
-			except Exception as e:
-				record_log(self.log_file_name, "其他错误", e)
-			else:
-				return True
-		# record_log(self.log_file_name, "Shippai This Folder:", folder_name, ", pic No:", num, " , URL: ", url)
-		return False
+	# def dl_pic(self, pic_url, file_name):
+	# 	# Return True: Successfully , False otherwise
+	# 	dl_times = 0
+	# 	while dl_times < self.MAX_DL_TIMES:
+	# 		dl_times += 1
+	# 		rq = request.Request(pic_url)  # 也许有机会重用一个对象，因为这里每次都要新建一个
+	# 		# rq.add_header('User-Agent', 'Mozilla/4.0(compatible;MSIE5.5;WindowsNT)')
+	# 		try:
+	# 			response = request.urlopen(rq, timeout=3000)
+	# 			with open(file_name, "wb") as pic:
+	# 				pic.write(response.read())
+	# 				addToAlready(file_name, self.already_pic_set, self.already_pic_file_name)
+	# 		except error.URLError as t:
+	# 			record_log(self.log_file_name, "下载", file_name, "超时", dl_times, "times")
+	# 		except Exception as e:
+	# 			record_log(self.log_file_name, "其他错误", e)
+	# 		else:
+	# 			return True
+	# 	# record_log(self.log_file_name, "Shippai This Folder:", folder_name, ", pic No:", num, " , URL: ", url)
+	# 	return False
 	
 	def dl_ep(self, pages, ep_url, folder_name):
 		record_log(self.log_file_name, "开始下载", folder_name, "共", pages, "页")
