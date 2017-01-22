@@ -38,12 +38,14 @@ class ikanman_DLer(basedler.BaseDLer):
 		createFile(self.log_file_name)
 
 		self.to_dl_list = set()  # 待下载话，为以后选择话数下载准备
+		self.record(self.bookname,ID_ikm,"初始化成功")
+
 
 	def getBookName(content):  # static method
 		# content => bookId
 
 		book_url = ikanman_DLer.main_site + ikanman_DLer.book_page + content
-		webpage=""
+		webpage = ""
 		try:
 			response = request.urlopen(book_url)
 			webpage = response.read().decode("utf8")  # 也许人家不是utf8
@@ -74,7 +76,10 @@ class ikanman_DLer(basedler.BaseDLer):
 		# p = Pool(pages)
 		createFolder(folder_name, self.log_file_name)
 		page_rq = request.Request(ep_url)
+		start = time.clock()
 		response = request.urlopen(page_rq)
+		end = time.clock()
+		self.record("读取一话页面耗时", end - start, "s")
 		str_con = response.read().decode("utf8")
 		from bs4 import BeautifulSoup
 
@@ -98,6 +103,7 @@ class ikanman_DLer(basedler.BaseDLer):
 			kaimitsu_js = f.read().decode("utf8")
 
 		import js2py
+		start=time.clock()
 		decrypt_result = js2py.eval_js(js_lib_by_py + kaimitsu_js + script)
 		# print(type(decrypt_result)) # <class 'str'>
 		# print("decrypt_result",decrypt_result)
@@ -107,7 +113,8 @@ class ikanman_DLer(basedler.BaseDLer):
 		true_result = bytes(true_list).decode("utf8")
 		# print("true result",true_result)
 		eval_result = js2py.eval_js(true_result)
-
+		end = time.clock()
+		self.record("JS耗时", end - start, "s")
 		# print(type(eval_result))  # <class 'js2py.base.JsObjectWrapper'>
 		""""
 		Deprecated
@@ -144,8 +151,8 @@ class ikanman_DLer(basedler.BaseDLer):
 		subtitle = eval_result["cname"]
 		dl_prefix = [dlsite + q(path) for dlsite in ikanman_DLer.dl_site]
 		for num, file in enumerate(files):
-			num += 1  # won't change
-			pic_url = [prefix + q(file) for prefix in dl_prefix]
+			num += 1  # won't change num permanently
+			pic_url = [prefix + q(file.replace(".webp", "")) for prefix in dl_prefix]
 			# pic_url=[parse.quote(url) for url in pic_url]
 			file_name = folder_name + '{:0>3}'.format(str(num)) + ".jpg"  # 还是说其他格式？
 			if file_name in self.already_pic_set:
@@ -154,7 +161,10 @@ class ikanman_DLer(basedler.BaseDLer):
 			# print(file_name, pic_url)
 			# 必须把汉字转成utf8流
 			# 其他错误 'ascii' codec can't encode characters in position 31-33: ordinal not in range(128)
+			start = time.clock()
 			self.dl_pic(pic_url, file_name)
+			end = time.clock()
+			self.record("下载图片耗时",end-start,"s")
 		addToAlready(folder_name, self.already_ep_set, self.already_ep_file_name)
 
 	# for it in di["files"]:
@@ -190,14 +200,17 @@ class ikanman_DLer(basedler.BaseDLer):
 	# 	record_log(self.log_file_name, folder_name, shippai, "张图片挂了")
 
 	def dl_whole_book(self):
-		record_log(self.log_file_name,"开始下载",self.bookname,ID_ikm)
+		record_log(self.log_file_name, "开始下载", self.bookname, ID_ikm)
 		# 怎么样只用response一次？getBookname里面也有一次。 或者存下来，之后删掉。
 		book_url = ikanman_DLer.main_site + ikanman_DLer.book_page + self.bookid + "/"
 		# book_url = "file:///C:/Users/%E5%BD%B1%E9%A3%8E%E7%A7%A6/Desktop/%E7%A5%9E%E5%A5%87%E5%AE%9D%E8%B4%9D%E7%89%B9%E5%88%AB%E7%AF%87%E6%BC%AB%E7%94%BB%E6%9C%AA%E4%BF%AE%E6%94%B9.html"
 		# book_url = "file:///C:/Users/%E5%BD%B1%E9%A3%8E%E7%A7%A6/Desktop/%E7%A5%9E%E5%A5%87%E5%AE%9D%E8%B4%9D%E7%89%B9%E5%88%AB%E7%AF%87%E6%BC%AB%E7%94%BB_.html"
 		# print(book_url)
 		rq = request.Request(book_url)
+		start = time.clock()
 		response = request.urlopen(rq)
+		end = time.clock()
+		self.record("耗时",end-start,"s")
 		str_con = response.read().decode("utf8")
 		from bs4 import BeautifulSoup
 		soup = BeautifulSoup(str_con, "html.parser")
@@ -242,8 +255,8 @@ class ikanman_DLer(basedler.BaseDLer):
 				for li in lis:  # 这就是真的每一话了，需要 href=对应每一话地址 title名字 i 数量
 					# ========= 获取每一话的对应信息 ===========
 					num_of_ep += 1
-					if num_of_ep > 1:
-						break
+					# if num_of_ep > 1:
+					# 	break
 					a = li.a
 
 					ep_url = ikanman_DLer.main_site + a["href"]  # a[href]是/comic/6540/163709.html
