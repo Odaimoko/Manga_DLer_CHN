@@ -7,6 +7,7 @@ from urllib import request, error
 from paya import basedler
 from paya.const import *
 
+
 class ikanman_DLer(basedler.BaseDLer):
 	main_site = "http://www.ikanman.com/"
 	book_page = "comic/"
@@ -81,7 +82,7 @@ class ikanman_DLer(basedler.BaseDLer):
 				if script_symbol in st:
 					script = st
 					break
-
+		script = script[5:-2]  # 去掉eval( 和 );
 		# print(script)
 		# 总之已经获取到加密后的JS了。 其实可以直接第五个？
 		# 假定现在已经获取了解密后的    ========= 已经获取了！！！！！！！！！！！！！！
@@ -89,11 +90,40 @@ class ikanman_DLer(basedler.BaseDLer):
 		with open("ikm_Kai_mitsu.js", "rb") as f:
 			kaimitsu_js = f.read().decode("utf8")
 		import js2py
-		print( script[5:-2])
 
-		decrypt_result = js2py.eval_js(js_lib_by_py + kaimitsu_js +  script[5:-2])
-		print(decrypt_result)#.to_dict()) # <class 'js2py.base.JsObjectWrapper'>
+		decrypt_result = js2py.eval_js(js_lib_by_py + kaimitsu_js + script)
+		# print(type(decrypt_result)) # <class 'str'>
+		print("decrypt_result",decrypt_result)
+		# 应该在这里就修正decrypt_result 应该是，EX ASCII的
+		true_list = [ord(c) for c in decrypt_result]
+		# print("real encode", bytes(true_list))
+		true_result = bytes(true_list).decode("utf8")
+		print("true result",true_result)
+		eval_result = js2py.eval_js(true_result)
 
+		print(type(eval_result))  # <class 'js2py.base.JsObjectWrapper'>
+		print("eval_result", eval_result)
+		# Plaintext = str(eval_result)
+		# b = bytes(Plaintext.encode("utf8"))
+		# print(b)
+		# wrong_bytes_decimal = list(b)
+		# wrong_bytes_decimal.remove(92)
+		# print("list version ", wrong_bytes_decimal)
+		# right_slash_num = wrong_bytes_decimal.count(92)
+		# while right_slash_num > 0:
+		# 	pos_92 = wrong_bytes_decimal.index(92)
+		# 	f1 = wrong_bytes_decimal[pos_92 + 2]
+		# 	f2 = wrong_bytes_decimal[pos_92 + 3]
+		# 	hexa = chr(f1) + chr(f2)
+		# 	real = hex2dec(hexa)
+		# 	wrong_bytes_decimal = wrong_bytes_decimal[:pos_92] + [real] + wrong_bytes_decimal[pos_92 + 4:]
+		# 	right_slash_num -= 1
+		# print("after ")
+		# print("no92", str(bytes(wrong_bytes_decimal).decode("utf8")))
+		di = js2py.eval_js(eval_result).list()
+
+	# for it in di["files"]:
+	# 	print(it)
 	# patt = re.compile(r"url: window.IS_SUPPORT_WEBP ?.*,?")
 	# pics_raw = patt.findall(str_con)
 	# num = 0
