@@ -15,7 +15,7 @@ class ikanman_DLer(basedler.BaseDLer):
 	           "http://cf.hamreus.com:8080", "http://idx0.hamreus.com:8080"]  # 下载地址path自带/
 	# 它的图床还有可能不一样= =估计是到了比较新的漫画（或者比较新的章节）
 	# 自动/ / 电信/连通/
-	
+
 	log_book_file = main_log_dir + "book_log.txt"
 
 	def __init__(self, bookid):
@@ -43,27 +43,28 @@ class ikanman_DLer(basedler.BaseDLer):
 		# content => bookId
 
 		book_url = ikanman_DLer.main_site + ikanman_DLer.book_page + content
+		webpage=""
 		try:
 			response = request.urlopen(book_url)
 			webpage = response.read().decode("utf8")  # 也许人家不是utf8
-			# 如果人家换了呢
-			# patt = re.compile(r'<div class="book-title">.*(</div>)*?')
-			patt = re.compile(r'<div class="book-title">.*<ul class="detail-list cf">')
-			bookname = patt.findall(webpage)
-			# print(bookname)
-			if not bookname:
-				# 空list，说明这个页面不存在漫画，也就是id给错了
-				record_log(ikanman_DLer.log_book_file, "书本ID", content, "错啦，不存在。")
-				return None
-			bookname = bookname[0]
-			end = bookname.find('</h1')
-			start = bookname.find('<h1>')
-			bookname = bookname[start + 4:end]
-			# print(bookname)
-			return bookname
 		except error.URLError:
 			record_log(ikanman_DLer.log_book_file, "获取", content, "超时，重试看看！~？")
 			return None
+
+		# 如果人家换了呢
+		patt = re.compile(r'<div class="book-title">.*<ul class="detail-list cf">')
+		bookname = patt.findall(webpage)
+		# print(bookname)
+		if not bookname:
+			# 空list，说明这个页面不存在漫画，也就是id给错了
+			record_log(ikanman_DLer.log_book_file, "书本ID", content, "错啦，不存在。")
+			return None
+		bookname = bookname[0]
+		end = bookname.find('</h1')
+		start = bookname.find('<h1>')
+		bookname = bookname[start + 4:end]
+		# print(bookname)
+		return bookname
 
 	def dl_ep(self, pages, ep_url, folder_name):
 		# folder_name是这一章的目录
@@ -189,6 +190,7 @@ class ikanman_DLer(basedler.BaseDLer):
 	# 	record_log(self.log_file_name, folder_name, shippai, "张图片挂了")
 
 	def dl_whole_book(self):
+		record_log(self.log_file_name,"开始下载",self.bookname,ID_ikm)
 		# 怎么样只用response一次？getBookname里面也有一次。 或者存下来，之后删掉。
 		book_url = ikanman_DLer.main_site + ikanman_DLer.book_page + self.bookid + "/"
 		# book_url = "file:///C:/Users/%E5%BD%B1%E9%A3%8E%E7%A7%A6/Desktop/%E7%A5%9E%E5%A5%87%E5%AE%9D%E8%B4%9D%E7%89%B9%E5%88%AB%E7%AF%87%E6%BC%AB%E7%94%BB%E6%9C%AA%E4%BF%AE%E6%94%B9.html"
@@ -251,8 +253,11 @@ class ikanman_DLer(basedler.BaseDLer):
 					fullTitle = a["title"]
 					ep_folder_name = chap_foldername + '{:0>4}'.format(
 						str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
-					print(ep_folder_name, ep_url)
+					# print(ep_folder_name, ep_url)
 
+					if ep_folder_name in self.already_ep_set:
+						record_log(self.log_file_name, ep_folder_name, "已下载")
+						continue
 					self.dl_ep(pages, ep_url, ep_folder_name)
 				# print(a["href"])
 				# print(type(a["href"]))
