@@ -11,9 +11,11 @@ from paya.const import *
 class ikanman_DLer(basedler.BaseDLer):
 	main_site = "http://www.ikanman.com"
 	book_page = "/comic/"
-	dl_site = ["http://i.hamreus.com:8080", "http://p.yogajx.com/"]  # 下载地址path自带/
+	dl_site = ["http://i.hamreus.com:8080", "http://p.yogajx.com",
+	           "http://cf.hamreus.com:8080", "http://idx0.hamreus.com:8080"]  # 下载地址path自带/
 	# 它的图床还有可能不一样= =估计是到了比较新的漫画（或者比较新的章节）
-
+	# 自动/ / 电信/连通/
+	
 	log_book_file = main_log_dir + "book_log.txt"
 
 	def __init__(self, bookid):
@@ -34,7 +36,6 @@ class ikanman_DLer(basedler.BaseDLer):
 
 		self.log_file_name = dl_log_dir + self.bookname + ID_ikm + main_log_file  # log/天才麻将少女_163_log.txt
 		createFile(self.log_file_name)
-
 
 		self.to_dl_list = set()  # 待下载话，为以后选择话数下载准备
 
