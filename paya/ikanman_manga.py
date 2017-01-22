@@ -9,8 +9,8 @@ from paya.const import *
 
 
 class ikanman_DLer(basedler.BaseDLer):
-	main_site = "http://www.ikanman.com/"
-	book_page = "comic/"
+	main_site = "http://www.ikanman.com"
+	book_page = "/comic/"
 	dl_site = ["http://i.hamreus.com:8080", "http://p.yogajx.com/"]  # 下载地址path自带/
 	# 它的图床还有可能不一样= =估计是到了比较新的漫画（或者比较新的章节）
 
@@ -106,7 +106,7 @@ class ikanman_DLer(basedler.BaseDLer):
 		# print("true result",true_result)
 		eval_result = js2py.eval_js(true_result)
 
-		print(type(eval_result))  # <class 'js2py.base.JsObjectWrapper'>
+		# print(type(eval_result))  # <class 'js2py.base.JsObjectWrapper'>
 		""""
 		Deprecated
 		# print("eval_result", eval_result) # 应该是纯返回值，也就是一个dict
