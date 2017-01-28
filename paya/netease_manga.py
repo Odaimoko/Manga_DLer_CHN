@@ -158,7 +158,7 @@ class NetEase_DLer(basedler.BaseDLer):
 	main_site = "https://manhua.163.com/"
 	book_page = "source/"
 	json_page = "book/catalog/"
-	log_book_file = main_log_dir+"book_log.txt"
+	log_book_file = main_log_dir + "book_log.txt"
 
 	# 一个漫画对应一个
 	def __init__(self, bookid):
@@ -180,6 +180,8 @@ class NetEase_DLer(basedler.BaseDLer):
 		self.log_file_name = dl_log_dir + self.bookname + ID_163 + main_log_file  # log/天才麻将少女_163_log.txt
 		createFile(self.log_file_name)
 		self.to_dl_list = set()  # 待下载话，为以后选择话数下载准备
+
+		self.zip = True
 	
 	def getBookName(content):  # static method
 		# content => bookId
@@ -193,7 +195,7 @@ class NetEase_DLer(basedler.BaseDLer):
 			# print(bookname)
 			if not bookname:
 				# 空list，说明这个页面不存在漫画，也就是id给错了
-				record_log(NetEase_DLer.log_book_file,"书本ID错啦，不存在。")
+				record_log(NetEase_DLer.log_book_file, "书本ID错啦，不存在。")
 				return None
 			bookname = bookname[0]
 			bookname = bookname.replace('<p class="book-title">', '').replace('</p>', '')
@@ -226,7 +228,7 @@ class NetEase_DLer(basedler.BaseDLer):
 	def dl_ep(self, pages, ep_url, folder_name):
 		record_log(self.log_file_name, "开始下载", folder_name, "共", pages, "页")
 		# p = Pool(pages)
-		createFolder(folder_name,self.log_file_name)
+		createFolder(folder_name, self.log_file_name)
 		page_rq = request.Request(ep_url)
 		response = request.urlopen(page_rq)
 		str_con = response.read().decode("utf8")
@@ -239,6 +241,9 @@ class NetEase_DLer(basedler.BaseDLer):
 			url = pics.split(": ")[2]  # 得到地址（分隔后最后一个）
 			url = url[1:len(url) - 2]  # 得到地址（拿来用）
 			file_name = folder_name + '{:0>3}'.format(str(num)) + ".png"  # 还是说其他格式？
+
+			# 应是jpg，因为有jfif的前缀
+
 			if file_name in self.already_pic_set:
 				record_log(self.log_file_name, file_name, "已下载")
 				continue
@@ -256,6 +261,8 @@ class NetEase_DLer(basedler.BaseDLer):
 		# p.join()
 		if not shippai:
 			record_log(self.log_file_name, folder_name, "下载完成")
+			if self.zip:
+				basedler.BaseDLer.zip_one_ep(folder_name)
 			addToAlready(folder_name, self.already_ep_set, self.already_ep_file_name)
 		else:
 			record_log(self.log_file_name, folder_name, shippai, "张图片挂了")
@@ -302,5 +309,3 @@ class NetEase_DLer(basedler.BaseDLer):
 					record_log(self.log_file_name, ep_folder_name, "已下载")
 					continue
 				self.dl_ep(pages, url_one_wa, ep_folder_name)
-
-

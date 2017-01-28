@@ -2,6 +2,7 @@ from urllib import request, error
 from paya.const import *
 import socket
 
+
 class BaseDLer:
 	MAX_DL_TIMES = 3
 
@@ -29,7 +30,7 @@ class BaseDLer:
 		def dl_one(pic_url):  # receives a str
 			# print("进入dl_one_子例程")
 			dl_times = 0
-			to_record=()
+			to_record = ()
 			while dl_times < self.MAX_DL_TIMES:
 				dl_times += 1
 				rq = request.Request(pic_url)  # 也许有机会重用一个对象，因为这里每次都要新建一个
@@ -44,7 +45,7 @@ class BaseDLer:
 						pic.write(response.read())
 						addToAlready(file_name, self.already_pic_set, self.already_pic_file_name)
 					end = time.clock()
-					# self.record("Writing pics...", end - start, "s")
+				# self.record("Writing pics...", end - start, "s")
 				except socket.timeout as s:
 					to_record = ("下载", file_name, "超时", dl_times, "times")
 					break
@@ -95,6 +96,16 @@ class BaseDLer:
 					pass
 			record_log(self.log_file_name, dl_result)
 			return False
+
+	def zip_one_ep(foldername):
+		# print(foldername[:-1]+'.zip') # 目录最后带有/
+		import zipfile
+		f = zipfile.ZipFile(foldername[:-1] + '.zip', 'w', zipfile.ZIP_DEFLATED)
+		startdir = foldername
+		for dirpath, dirnames, filenames in os.walk(startdir):
+			for filename in filenames:
+				f.write(dirpath + filename, filename)
+		f.close()
 
 	def dl_whole_book(self):
 		pass

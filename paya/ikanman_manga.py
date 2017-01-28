@@ -6,6 +6,7 @@ import time
 from urllib import request, error, parse
 from paya import basedler
 from paya.const import *
+import js2py
 
 
 class ikanman_DLer(basedler.BaseDLer):
@@ -15,6 +16,7 @@ class ikanman_DLer(basedler.BaseDLer):
 	           "http://cf.hamreus.com:8080", "http://idx0.hamreus.com:8080"]  # 下载地址path自带/
 	# 它的图床还有可能不一样= =估计是到了比较新的漫画（或者比较新的章节）
 	# 自动/ / 电信/连通/
+
 
 	log_book_file = main_log_dir + "book_log.txt"
 
@@ -38,7 +40,10 @@ class ikanman_DLer(basedler.BaseDLer):
 		createFile(self.log_file_name)
 
 		self.to_dl_list = set()  # 待下载话，为以后选择话数下载准备
-		self.record(self.bookname,ID_ikm,"初始化成功")
+
+		self.zip = True
+
+		self.record(self.bookname, ID_ikm, "初始化成功")
 
 
 	def getBookName(content):  # static method
@@ -99,11 +104,11 @@ class ikanman_DLer(basedler.BaseDLer):
 		# 总之已经获取到加密后的JS了。 其实可以直接第五个？
 		# 假定现在已经获取了解密后的    ========= 已经获取了！！！！！！！！！！！！！！
 		# 如果可以，还是加载页面上的比较好 xxxx 如果重新洗一个encodeURIConnection
-		with open("ikm_Kai_mitsu.js", "rb") as f:
-			kaimitsu_js = f.read().decode("utf8")
+		# with open("ikm_Kai_mitsu.js", "rb") as f:
+		# 	kaimitsu_js = f.read().decode("utf8")
 
-		import js2py
-		start=time.clock()
+		kaimitsu_js = js2py.get_file_contents("ikm_Kai_mitsu.js")
+		start = time.clock()
 		decrypt_result = js2py.eval_js(js_lib_by_py + kaimitsu_js + script)
 		# print(type(decrypt_result)) # <class 'str'>
 		# print("decrypt_result",decrypt_result)
@@ -164,7 +169,9 @@ class ikanman_DLer(basedler.BaseDLer):
 			start = time.clock()
 			self.dl_pic(pic_url, file_name)
 			end = time.clock()
-			self.record("下载图片耗时",end-start,"s")
+			self.record("下载图片耗时", end - start, "s")
+		if self.zip:
+			basedler.BaseDLer.zip_one_ep(folder_name)
 		addToAlready(folder_name, self.already_ep_set, self.already_ep_file_name)
 
 	# for it in di["files"]:
@@ -210,7 +217,7 @@ class ikanman_DLer(basedler.BaseDLer):
 		start = time.clock()
 		response = request.urlopen(rq)
 		end = time.clock()
-		self.record("耗时",end-start,"s")
+		self.record("耗时", end - start, "s")
 		str_con = response.read().decode("utf8")
 		from bs4 import BeautifulSoup
 		soup = BeautifulSoup(str_con, "html.parser")
