@@ -165,7 +165,8 @@ class ikanman_DLer(basedler.BaseDLer):
 			num += 1  # won't change num permanently
 			print("转换前",file)
 
-			pic_url = [prefix + q(file.replace(".webp", "")) for prefix in dl_prefix]
+			pic_url = [prefix + q(file.replace(".webp", "")).replace("%25","%") for prefix in dl_prefix]
+			# 如果本身有%20这样的空格，会转化成%2520，应该转回来
 			# pic_url = [prefix + q(file.replace(".webp", "")) for prefix in dl_prefix]
 			print("转换后",pic_url)
 
