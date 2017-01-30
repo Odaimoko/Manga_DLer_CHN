@@ -39,12 +39,17 @@ class ikanman_DLer(basedler.BaseDLer):
 		self.log_file_name = dl_log_dir + self.bookname + ID_ikm + main_log_file  # log/天才麻将少女_163_log.txt
 		createFile(self.log_file_name)
 
+		self.mikanse_file_name=self.dl_path+main_shippai_file
+		createFile(self.mikanse_file_name)
+		with open(self.mikanse_file_name,"r") as f:
+			self.mikanse = json.load(f)
+		print(type(self.mikanse))
+
 		self.to_dl_list = set()  # 待下载话，为以后选择话数下载准备
 
 		self.zip = True
 
 		self.record(self.bookname, ID_ikm, "初始化成功")
-
 
 	def getBookName(content):  # static method
 		# content => bookId
@@ -155,11 +160,17 @@ class ikanman_DLer(basedler.BaseDLer):
 		title = eval_result["bname"]
 		subtitle = eval_result["cname"]
 		dl_prefix = [dlsite + q(path) for dlsite in ikanman_DLer.dl_site]
+		shippai = 0
 		for num, file in enumerate(files):
 			num += 1  # won't change num permanently
+			print("转换前",file)
+
 			pic_url = [prefix + q(file.replace(".webp", "")) for prefix in dl_prefix]
+			# pic_url = [prefix + q(file.replace(".webp", "")) for prefix in dl_prefix]
+			print("转换后",pic_url)
+
 			# pic_url=[parse.quote(url) for url in pic_url]
-			file_name = folder_name + '{:0>3}'.format(str(num)) + ".jpg"  # 还是说其他格式？
+			file_name = folder_name + '{:0>3}'.format(str(num)) + ".jpg"  # 还是说其他格式？ 就是jpg
 			if file_name in self.already_pic_set:
 				record_log(self.log_file_name, file_name, "已下载")
 				continue
@@ -167,12 +178,21 @@ class ikanman_DLer(basedler.BaseDLer):
 			# 必须把汉字转成utf8流
 			# 其他错误 'ascii' codec can't encode characters in position 31-33: ordinal not in range(128)
 			start = time.clock()
-			self.dl_pic(pic_url, file_name)
+			# isDLed = self.dl_pic(pic_url, file_name)
 			end = time.clock()
 			self.record("下载图片耗时", end - start, "s")
-		if self.zip:
-			basedler.BaseDLer.zip_one_ep(folder_name)
-		addToAlready(folder_name, self.already_ep_set, self.already_ep_file_name)
+			# if not isDLed:
+			# 	shippai += 1
+		# if not shippai:
+		# 	record_log(self.log_file_name, folder_name, "下载完成")
+		# 	if self.zip:
+		# 		basedler.BaseDLer.zip_one_ep(folder_name)
+		# 	addToAlready(folder_name, self.already_ep_set, self.already_ep_file_name)
+		# else:
+		# 	# 写入文件（重新写一遍）
+		# 	with open(self.mikanse_file_name,"w") as f:
+		# 		json.dump(self.mikanse,fp=f,indent="\t",sort_keys=True)
+		# 	record_log(self.log_file_name, folder_name, shippai, "张图片挂了")
 
 	# for it in di["files"]:
 	# 	print(it)
@@ -332,3 +352,4 @@ class ikanman_DLer(basedler.BaseDLer):
 				# 			record_log(self.log_file_name, ep_folder_name, "已下载")
 				# 			continue
 				# 		self.dl_ep(pages, url_one_wa, ep_folder_name)
+		# self.record(self.mikanse)

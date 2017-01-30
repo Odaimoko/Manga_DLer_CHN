@@ -60,8 +60,8 @@ if __name__ == "__main__":
 	# getBookName("163", L_Dart)
 	# id_book = str(input())
 	id_book = "4617223306170106339"
-	ne_book = netease.NetEase_DLer(tenma)
-	ne_book._dl()
+	# ne_book = netease.NetEase_DLer(tenma)
+	# ne_book._dl()
 
 	# ikm
 	shinohayu = "10360"
@@ -72,5 +72,5 @@ if __name__ == "__main__":
 	# print(ikm.ikanman_DLer.getBookName(shinohayu))
 	# print(ikm.ikanman_DLer.getBookName(toku))
 	# ik_book_pm = ikm.ikanman_DLer(toku)
-	# ik_book_shino = ikm.ikanman_DLer(shinohayu)
-	# ik_book_shino.dl_whole_book()
+	ik_book_shino = ikm.ikanman_DLer(shinohayu)
+	ik_book_shino.dl_whole_book()

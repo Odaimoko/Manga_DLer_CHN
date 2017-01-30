@@ -259,13 +259,6 @@ class NetEase_DLer(basedler.BaseDLer):
 				record_log(self.log_file_name, "Shippai This Folder:", folder_name, ", pic No:", num, " , URL: ", url)
 		# p.close()
 		# p.join()
-		if not shippai:
-			record_log(self.log_file_name, folder_name, "下载完成")
-			if self.zip:
-				basedler.BaseDLer.zip_one_ep(folder_name)
-			addToAlready(folder_name, self.already_ep_set, self.already_ep_file_name)
-		else:
-			record_log(self.log_file_name, folder_name, shippai, "张图片挂了")
 
 	def dl_whole_book(self):
 		json_url = "https://manhua.163.com/book/catalog/" + self.bookid + ".json"

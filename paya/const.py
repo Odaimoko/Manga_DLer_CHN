@@ -14,7 +14,7 @@ dl_log_dir = main_log_dir + "dl/"
 main_already_pic_file = "already_pic.txt"
 main_already_ep_file = "already_ep.txt"
 main_log_file = "log.txt"
-
+main_shippai_file = "shippai.json"
 # =======================IDS==========================
 ID_163 = "_163_"
 ID_ikm = "_iKanMan_"
