@@ -1,4 +1,4 @@
-import threading, time, os,re
+import threading, time, os, re
 
 # multiprocessing.Queue
 # sys.path.append("..")
@@ -83,7 +83,7 @@ def createFolder(name, logfile=None):
 			record_log(logfile, name + " created.")
 
 
-def createFile(name, logfile=None):
+def createFile(name, logfile=None, initial=""):
 	import os
 	if os.path.exists(name):
 		return False
@@ -92,7 +92,7 @@ def createFile(name, logfile=None):
 		path = name_list[:-1]
 		createFolder("/".join(path), logfile)
 	with open(name, "w") as f:
-		pass
+		f.write(initial)
 	return True
 
 
@@ -112,33 +112,34 @@ def url_utf8tostr(url):
 	chars = bytes(chars).decode("utf8")
 	real_url = ""
 	ind = 0
-	i=0
+	i = 0
 	for c in url:
 		if i > 0:
-			i-=1
+			i -= 1
 			continue
 		if c == "%":
 			real_url += chars[ind]
 			ind += 1
-			i += 8 # 1个utf8是9位，所以后面8个都不看
+			i += 8  # 1个utf8是9位，所以后面8个都不看
 		else:
 			real_url += c
 	return real_url
+
 
 def encodeURIComponent(to):
 	# to = "一步"
 	bs = to.encode()
 	result = ""
 	for l in list(bs):
-		result+=(hex(l)).replace("0x",'%')
+		result += (hex(l)).replace("0x", '%')
 	return result.upper()
 
-def writeTo(content,file=None):
+
+def writeTo(content, file=None):
 	if not file:
-		with open("temp.txt","w") as f:
+		with open("temp.txt", "w") as f:
 			f.write(str(content))
 			f.write("\n")
-
 
 
 # OTHERS

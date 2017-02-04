@@ -42,9 +42,7 @@ class ikanman_DLer(basedler.BaseDLer):
 		self.mikanse_file_name = self.dl_path + main_shippai_file
 		exist_mikanse = os.path.exists(self.mikanse_file_name)
 		if not exist_mikanse:
-			createFile(self.mikanse_file_name)
-			with open(self.mikanse_file_name,"w") as f:
-				f.write("{}")
+			createFile(self.mikanse_file_name,initial="{}")
 		with open(self.mikanse_file_name, "r") as f:
 			self.mikanse = json.load(f)
 		print(type(self.mikanse))
