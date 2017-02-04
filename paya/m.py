@@ -3,6 +3,7 @@
 import sys
 sys.path.append("..")
 # print(sys.path)
+
 import paya.netease_manga as netease
 import paya.ikanman_manga as ikm
 import os, re
@@ -73,4 +74,4 @@ if __name__ == "__main__":
 	# print(ikm.ikanman_DLer.getBookName(toku))
 	# ik_book_pm = ikm.ikanman_DLer(toku)
 	ik_book_shino = ikm.ikanman_DLer(shinohayu)
-	ik_book_shino.dl_whole_book()
+	# ik_book_shino.dl_whole_book()

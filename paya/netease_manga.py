@@ -1,14 +1,15 @@
 import json
-import os
+import os, sys
 import re
 import threading
 import time
 from urllib import request, error
+# sys.path.append("..")
+
 from paya import basedler
 from paya.const import *
 
 # multiprocessing.Queue
-# sys.path.append("..")
 # import iMyUtil
 
 already_tenma_file = "already_tenma_json.txt"

@@ -37,6 +37,7 @@ nosetests.xml
 
 天才*?/
 #测试用
+.idea/
 noth.py
 # log 文件
 *.txt
