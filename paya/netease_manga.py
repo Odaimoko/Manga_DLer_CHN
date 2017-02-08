@@ -159,7 +159,7 @@ class NetEase_DLer(basedler.BaseDLer):
 	main_site = "https://manhua.163.com/"
 	book_page = "source/"
 	json_page = "book/catalog/"
-	log_book_file = main_log_dir + "book_log.txt"
+	log_book_file = log_dir + "book_log.txt"
 
 	# 一个漫画对应一个
 	def __init__(self, bookid):
@@ -172,13 +172,13 @@ class NetEase_DLer(basedler.BaseDLer):
 			return
 		self.dl_path = dl_dir + self.bookname + ID_163 + "/"
 		
-		self.already_pic_file_name = self.dl_path + main_already_pic_file  # 天才麻将少女/_163_already_pic.txt
+		self.already_pic_file_name = self.dl_path + already_pic_file  # 天才麻将少女/_163_already_pic.txt
 		initializeAlready(self.already_pic_set, self.already_pic_file_name)
 		
-		self.already_ep_file_name = self.dl_path + main_already_ep_file
+		self.already_ep_file_name = self.dl_path + already_ep_file
 		initializeAlready(self.already_ep_set, self.already_ep_file_name)
 		
-		self.log_file_name = dl_log_dir + self.bookname + ID_163 + main_log_file  # log/天才麻将少女_163_log.txt
+		self.log_file_name = dl_log_dir + self.bookname + ID_163 + log_file  # log/天才麻将少女_163_log.txt
 		createFile(self.log_file_name)
 		self.to_dl_list = set()  # 待下载话，为以后选择话数下载准备
 

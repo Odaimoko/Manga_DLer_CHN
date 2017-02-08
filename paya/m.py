@@ -7,7 +7,8 @@ sys.path.append("..")
 import paya.netease_manga as netease
 import paya.ikanman_manga as ikm
 import os, re
-
+import paya.dl_manager as dl
+from paya.const import *
 with open("ikm_Kai_mitsu.js", "rb") as f:
 	enc = f.read().decode("utf8")
 # with open("ez.js","r") as f:
@@ -49,12 +50,17 @@ var writeto = function(content){pyimport paya; paya.const.writeTo(content);}
 # true_list = [ord(c) for c in the_same]
 # print("real encode",bytes(true_list))
 # print("encode result",the_same.encode("utf8"))
-
+# @log_time("这个操作")
+# def f():
+# 	print("他会i数据库连接")
+# 	time.sleep(2)
+# 	print("微积分")
+# f()
 if __name__ == "__main__":
 	# 使用多线程： 用每个线程下载不同的图片（每一话新开pool）
 	# initializeAlready(already_tenma, already_tenma_file)
 	# try_getJson()
-
+	createFolder(data_dir)
 	# 163
 	tenma = "4458002705630123103"
 	L_Dart = "4603479161120104695"  # 神契 幻奇谭
@@ -70,8 +76,10 @@ if __name__ == "__main__":
 	toku = "6540"
 	cike = "8632"
 	zhenhunjie = "9082"
+	konan = "2027"
 	# print(ikm.ikanman_DLer.getBookName(shinohayu))
 	# print(ikm.ikanman_DLer.getBookName(toku))
 	# ik_book_pm = ikm.ikanman_DLer(toku)
-	ik_book_shino = ikm.ikanman_DLer(shinohayu)
+	# ik_book_shino = ikm.ikanman_DLer(shinohayu)
 	# ik_book_shino.dl_whole_book()
+	dman = dl.DLManager()

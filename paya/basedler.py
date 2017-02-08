@@ -20,6 +20,19 @@ class BaseDLer:
 	def _init(self):
 		pass
 
+	def check_db(self):
+		"""
+		如果db里有，直接读取db里的，并不更新（因为一开程序自动更新已存在的）
+		"""
+		return False
+
+	def get_chaplist(self):
+		# name only
+		pass
+
+	def get_eplist(self, index=0):
+		pass
+
 	def record(self, *content):
 		record_log(self.log_file_name, *content)
 

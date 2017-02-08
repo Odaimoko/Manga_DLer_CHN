@@ -10,15 +10,17 @@ from threading import Timer
 文件夹名字若无说明，统一在后面加/
 """
 dl_dir = "../"
-main_log_dir = "../log/"
-
-dl_log_dir = main_log_dir + "dl/"
+log_dir = "../log/"
+dl_log_dir = log_dir + "dl/"
+data_dir = "../data/"
 # log文件放在一起，已下载每一个单独放在对应文件夹
 
-main_already_pic_file = "already_pic.txt"
-main_already_ep_file = "already_ep.txt"
-main_log_file = "log.txt"
-main_shippai_file = "shippai.json"
+already_pic_file = "already_pic.txt"
+already_ep_file = "already_ep.txt"
+log_file = "log.txt"
+shippai_file = "shippai.json"
+db_file = "db"
+
 # =======================IDS==========================
 ID_163 = "_163_"
 ID_ikm = "_iKanMan_"
@@ -164,6 +166,7 @@ def log_time(*text, record=None):
 
 
 def time_limit(interval):
+	# 抛出Timeout Error
 	def deco(func):
 		def time_out():
 			raise TimeoutError()

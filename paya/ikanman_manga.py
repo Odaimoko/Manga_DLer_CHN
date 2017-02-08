@@ -18,7 +18,7 @@ class ikanman_DLer(basedler.BaseDLer):
 	# 自动/ / 电信/连通/
 
 
-	log_book_file = main_log_dir + "book_log.txt"
+	log_book_file = log_dir + "book_log.txt"
 
 	def __init__(self, bookid):
 		basedler.BaseDLer.__init__(self)
@@ -30,19 +30,19 @@ class ikanman_DLer(basedler.BaseDLer):
 			return
 		self.dl_path = dl_dir + self.bookname + ID_ikm + "/"
 
-		self.already_pic_file_name = self.dl_path + main_already_pic_file  # 天才麻将少女/_163_already_pic.txt
+		self.already_pic_file_name = self.dl_path + already_pic_file  # 天才麻将少女/_163_already_pic.txt
 		initializeAlready(self.already_pic_set, self.already_pic_file_name)
 
-		self.already_ep_file_name = self.dl_path + main_already_ep_file
+		self.already_ep_file_name = self.dl_path + already_ep_file
 		initializeAlready(self.already_ep_set, self.already_ep_file_name)
 
-		self.log_file_name = dl_log_dir + self.bookname + ID_ikm + main_log_file  # log/天才麻将少女_163_log.txt
+		self.log_file_name = dl_log_dir + self.bookname + ID_ikm + log_file  # log/天才麻将少女_163_log.txt
 		createFile(self.log_file_name)
 
-		self.mikanse_file_name = self.dl_path + main_shippai_file
+		self.mikanse_file_name = self.dl_path + shippai_file
 		exist_mikanse = os.path.exists(self.mikanse_file_name)
 		if not exist_mikanse:
-			createFile(self.mikanse_file_name,initial="{}")
+			createFile(self.mikanse_file_name, initial="{}")
 		with open(self.mikanse_file_name, "r") as f:
 			self.mikanse = json.load(f)
 		print(type(self.mikanse))
@@ -83,9 +83,10 @@ class ikanman_DLer(basedler.BaseDLer):
 	def dl_ep(self, pages, ep_url, folder_name):
 		# folder_name是这一章的目录
 		script_symbol = "eval(decryptDES"
-
+		from multiprocessing.pool import Pool
+		import multiprocessing
 		record_log(self.log_file_name, "开始下载", folder_name, "共", pages, "页")
-		# p = Pool(pages)
+		p = Pool(multiprocessing.cpu_count())
 		createFolder(folder_name, self.log_file_name)
 		page_rq = request.Request(ep_url)
 		start = time.clock()
@@ -128,26 +129,6 @@ class ikanman_DLer(basedler.BaseDLer):
 		end = time.clock()
 		self.record("JS耗时", end - start, "s")
 		# print(type(eval_result))  # <class 'js2py.base.JsObjectWrapper'>
-		"""
-		Deprecated
-		# print("eval_result", eval_result) # 应该是纯返回值，也就是一个dict
-		# Plaintext = str(eval_result)
-		# b = bytes(Plaintext.encode("utf8"))
-		# print(b)
-		# wrong_bytes_decimal = list(b)
-		# wrong_bytes_decimal.remove(92)
-		# print("list version ", wrong_bytes_decimal)
-		# right_slash_num = wrong_bytes_decimal.count(92)
-		# while right_slash_num > 0:
-		# 	pos_92 = wrong_bytes_decimal.index(92)
-		# 	f1 = wrong_bytes_decimal[pos_92 + 2]
-		# 	f2 = wrong_bytes_decimal[pos_92 + 3]
-		# 	hexa = chr(f1) + chr(f2)
-		# 	real = hex2dec(hexa)
-		# 	wrong_bytes_decimal = wrong_bytes_decimal[:pos_92] + [real] + wrong_bytes_decimal[pos_92 + 4:]
-		# 	right_slash_num -= 1
-		# print("after ")
-		# print("no92", str(bytes(wrong_bytes_decimal).decode("utf8")))"""
 
 		# di = js2py.eval_js(eval_result)
 		#  既然是个js的obj（dict），那么自然也就没有None和False了，eval_result已经是字符串
@@ -169,10 +150,9 @@ class ikanman_DLer(basedler.BaseDLer):
 
 			pic_url = [prefix + q(file.replace(".webp", "")).replace("%25", "%") for prefix in dl_prefix]
 			# 如果本身有%20这样的空格，会转化成%2520，应该转回来
-			# pic_url = [prefix + q(file.replace(".webp", "")) for prefix in dl_prefix]
-			print("转换后", pic_url)
+			#  pic_url = [prefix + q(file.replace(".webp", "")) for prefix in dl_prefix] # 废弃
+			# print("转换后", pic_url)
 
-			# pic_url=[parse.quote(url) for url in pic_url]
 			file_name = folder_name + '{:0>3}'.format(str(num)) + ".jpg"  # 还是说其他格式？ 就是jpg
 			if file_name in self.already_pic_set:
 				record_log(self.log_file_name, file_name, "已下载")
@@ -197,37 +177,6 @@ class ikanman_DLer(basedler.BaseDLer):
 		# 		json.dump(self.mikanse,fp=f,indent="\t",sort_keys=True)
 		# 	record_log(self.log_file_name, folder_name, shippai, "张图片挂了")
 
-	# for it in di["files"]:
-	# 	print(it)
-	# patt = re.compile(r"url: window.IS_SUPPORT_WEBP ?.*,?")
-	# pics_raw = patt.findall(str_con)
-	# num = 0
-	# shippai = 0
-	# for pics in pics_raw:
-	# 	num += 1
-	# 	url = pics.split(": ")[2]  # 得到地址（分隔后最后一个）
-	# 	url = url[1:len(url) - 2]  # 得到地址（拿来用）
-	# 	file_name = folder_name + '{:0>3}'.format(str(num)) + ".png"  # 还是说其他格式？
-	# 	if file_name in self.already_pic_set:
-	# 		record_log(self.log_file_name, file_name, "已下载")
-	# 		continue
-	# 	isDLed = self.dl_pic(url, file_name)
-	# 	# result = p.apply_async(pic_dl_with_pool, args=(url, file_name))
-	# 	# isDLed = result.get() # 直接获取返回值，去你大爷的callback
-	# 	# record_log(self.log_file_name,"isDLed",isDLed)
-	#
-	# 	# if isDLed:
-	# 	# record_log(self.log_file_name, "图片下载成功", file_name)
-	# 	if not isDLed:
-	# 		shippai += 1
-	# 		record_log(self.log_file_name, "Shippai This Folder:", folder_name, ", pic No:", num, " , URL: ", url)
-	# # p.close()
-	# # p.join()
-	# if not shippai:
-	# 	record_log(self.log_file_name, folder_name, "下载完成")
-	# 	addToAlready(folder_name, self.already_ep_set, self.already_ep_file_name)
-	# else:
-	# 	record_log(self.log_file_name, folder_name, shippai, "张图片挂了")
 
 	def dl_whole_book(self):
 		record_log(self.log_file_name, "开始下载", self.bookname, ID_ikm)
@@ -294,65 +243,65 @@ class ikanman_DLer(basedler.BaseDLer):
 					pages = str(i_con[0])[:-1]
 					pages = int(pages)
 					fullTitle = a["title"]
-					ep_folder_name = chap_foldername + '{:0>4}'.format(
-						str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
-					# print(ep_folder_name, ep_url)
-
+					pure_folder_name = '{:0>4}'.format(str(num_of_ep)) + " " + fullTitle
+					ep_folder_name = chap_foldername + pure_folder_name + '/'  # 格式化文件夹名字，用0补全前面
+					print(ep_folder_name, ep_url)
+					continue
 					if ep_folder_name in self.already_ep_set:
 						record_log(self.log_file_name, ep_folder_name, "已下载")
 						continue
 					self.dl_ep(pages, ep_url, ep_folder_name)
-					# print(a["href"])
-					# print(type(a["href"]))
-					# print(pages)
+				# print(a["href"])
+				# print(type(a["href"]))
+				# print(pages)
 
-					# eps += lis
-					# chapter_lis.append(eps
+				# eps += lis
+				# chapter_lis.append(eps
 
-					# chapters = soup.find_all("h4") # <class 'bs4.element.ResultSet'>
-					# chapters.reverse for c in chapters:
-					# 	# 全部的chapter信息 每一个的都是 <class 'bs4.element.Tag'>
-					# 	#形式为 <h4><span>单话</span></h4>
-					# 	chapter_name = c.contents[0].contents[0] # 得到 单话 <class 'bs4.element.NavigableString'>
-					# 	chapter_name = str(chapter_name)
-					# 	print(str(chapter_name))
-					# chapters = [str(c.contents[0].contents[0]) for c in chapters]
-					# # 每一话h4的下一个兄弟是一个div，这个div里面只有一个元素ul【第一个contents】
-					# # xxx 可以多个ul，他一一页装不下太多了，所以翻了页。解析就for的时候reverse他。
-					# # ul里面每一个li【第二个contents】就是每一话
+				# chapters = soup.find_all("h4") # <class 'bs4.element.ResultSet'>
+				# chapters.reverse for c in chapters:
+				# 	# 全部的chapter信息 每一个的都是 <class 'bs4.element.Tag'>
+				# 	#形式为 <h4><span>单话</span></h4>
+				# 	chapter_name = c.contents[0].contents[0] # 得到 单话 <class 'bs4.element.NavigableString'>
+				# 	chapter_name = str(chapter_name)
+				# 	print(str(chapter_name))
+				# chapters = [str(c.contents[0].contents[0]) for c in chapters]
+				# # 每一话h4的下一个兄弟是一个div，这个div里面只有一个元素ul【第一个contents】
+				# # xxx 可以多个ul，他一一页装不下太多了，所以翻了页。解析就for的时候reverse他。
+				# # ul里面每一个li【第二个contents】就是每一话
 
 
 
-					# for chapter in chapters:
-					# 	# chapter 是一个json，dict。 有 16 个key
-					# 	num_of_chap += 1
-					# 	# 多个篇章的文件夹分开装
-					# 	chaptername = chapter["fullTitle"]
-					# 	# 如果只有一个chapter，就不分开
-					# 	if len(chapters) == 1:
-					# 		chap_foldername = self.dl_path
-					# 	else:
-					# 		chap_foldername = self.dl_path + '{:0>2}'.format(
-					# 			str(num_of_chap)) + "_" + chaptername + '/'  # 格式化文件夹名字，用0补全前面
-					# 	# print(len(chapter)) # 因为这个是dict，所以len就是 16（dict里元素个数）
-					# 	# print( chapter )
-					# 	record_log(self.log_file_name, "开始下载篇章", chap_foldername)
-					#
-					# 	num_of_ep = 0
-					# 	for subsection in chapter["sections"]:
-					# 		num_of_ep += 1
-					# 		# if num_of_ep == 2:
-					# 		# 	return
-					# 		bookId = subsection["bookId"]
-					# 		pages = subsection["wordCount"]
-					# 		sectionId = subsection["sectionId"]
-					# 		fullTitle = subsection["fullTitle"]
-					# 		url_one_wa = "https://manhua.163.com/reader/" + bookId + "/" + sectionId + "/"
-					# 		ep_folder_name = chap_foldername + '{:0>4}'.format(
-					# 			str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
-					# 		# print(ep_folder_name,url_one_wa)
-					# 		if ep_folder_name in self.already_ep_set:
-					# 			record_log(self.log_file_name, ep_folder_name, "已下载")
-					# 			continue
-					# 		self.dl_ep(pages, url_one_wa, ep_folder_name)
-					# self.record(self.mikanse)
+				# for chapter in chapters:
+				# 	# chapter 是一个json，dict。 有 16 个key
+				# 	num_of_chap += 1
+				# 	# 多个篇章的文件夹分开装
+				# 	chaptername = chapter["fullTitle"]
+				# 	# 如果只有一个chapter，就不分开
+				# 	if len(chapters) == 1:
+				# 		chap_foldername = self.dl_path
+				# 	else:
+				# 		chap_foldername = self.dl_path + '{:0>2}'.format(
+				# 			str(num_of_chap)) + "_" + chaptername + '/'  # 格式化文件夹名字，用0补全前面
+				# 	# print(len(chapter)) # 因为这个是dict，所以len就是 16（dict里元素个数）
+				# 	# print( chapter )
+				# 	record_log(self.log_file_name, "开始下载篇章", chap_foldername)
+				#
+				# 	num_of_ep = 0
+				# 	for subsection in chapter["sections"]:
+				# 		num_of_ep += 1
+				# 		# if num_of_ep == 2:
+				# 		# 	return
+				# 		bookId = subsection["bookId"]
+				# 		pages = subsection["wordCount"]
+				# 		sectionId = subsection["sectionId"]
+				# 		fullTitle = subsection["fullTitle"]
+				# 		url_one_wa = "https://manhua.163.com/reader/" + bookId + "/" + sectionId + "/"
+				# 		ep_folder_name = chap_foldername + '{:0>4}'.format(
+				# 			str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
+				# 		# print(ep_folder_name,url_one_wa)
+				# 		if ep_folder_name in self.already_ep_set:
+				# 			record_log(self.log_file_name, ep_folder_name, "已下载")
+				# 			continue
+				# 		self.dl_ep(pages, url_one_wa, ep_folder_name)
+				# self.record(self.mikanse)
