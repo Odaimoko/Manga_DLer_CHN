@@ -1,10 +1,14 @@
 import threading, time, os, re
+from functools import wraps
+from threading import Timer
 
 # multiprocessing.Queue
 # sys.path.append("..")
 # import iMyUtil
 # =======================CONSTS==========================
-
+"""
+文件夹名字若无说明，统一在后面加/
+"""
 dl_dir = "../"
 main_log_dir = "../log/"
 
@@ -140,6 +144,40 @@ def writeTo(content, file=None):
 		with open("temp.txt", "w") as f:
 			f.write(str(content))
 			f.write("\n")
+
+
+def log_time(*text, record=None):
+	def real_deco(func):
+		@wraps(func)
+		def impl(*args, **kw):
+			start = time.clock()
+			func(*args, **kw)
+			end = time.clock()
+			r = print if not record else record
+			t = (func.__name__,) if not text else text
+			print(r, t)
+			r(*t, "花费时间", end - start, "秒")
+
+		return impl
+
+	return real_deco
+
+
+def time_limit(interval):
+	def deco(func):
+		def time_out():
+			raise TimeoutError()
+
+		@wraps(func)
+		def deco(*args, **kwargs):
+			timer = Timer(interval, time_out)
+			timer.start()
+			res = func(*args, **kwargs)
+			return res
+
+		return deco
+
+	return deco
 
 
 # OTHERS
