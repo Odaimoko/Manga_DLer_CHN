@@ -191,7 +191,7 @@ class NetEase_DLer(basedler.BaseDLer):
 			response = request.urlopen(book_url)
 			webpage = response.read().decode("utf8")  # 也许人家不是utf8
 			# 如果人家换了呢
-			patt = re.compile(r'<p class="book-title">.*</p>')
+			patt = re.compile(r'book-title=".*" h5Domain')
 			bookname = patt.findall(webpage)
 			# print(bookname)
 			if not bookname:
@@ -199,7 +199,7 @@ class NetEase_DLer(basedler.BaseDLer):
 				record_log(NetEase_DLer.log_book_file, "书本ID错啦，不存在。")
 				return None
 			bookname = bookname[0]
-			bookname = bookname.replace('<p class="book-title">', '').replace('</p>', '')
+			bookname = bookname.replace('book-title="', '').replace('" h5Domain', '')
 			return bookname
 		except error.URLError:
 			record_log(NetEase_DLer.log_book_file, "获取超时，重试看看！~？")
