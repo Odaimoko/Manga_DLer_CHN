@@ -7,7 +7,7 @@ sys.path.append("..")
 import paya.netease_manga as netease
 import paya.ikanman_manga as ikm
 import os, re
-import paya.dl_manager as dl
+# import paya.dl_manager as dl
 from paya.const import *
 with open("ikm_Kai_mitsu.js", "rb") as f:
 	enc = f.read().decode("utf8")
@@ -67,8 +67,8 @@ if __name__ == "__main__":
 	# getBookName("163", L_Dart)
 	# id_book = str(input())
 	id_book = "4617223306170106339"
-	# ne_book = netease.NetEase_DLer(tenma)
-	# ne_book._dl()
+	ne_book = netease.NetEase_DLer(tenma)
+	ne_book._dl()
 
 	# ikm
 	shinohayu = "10360"
@@ -82,4 +82,4 @@ if __name__ == "__main__":
 	# ik_book_pm = ikm.ikanman_DLer(toku)
 	# ik_book_shino = ikm.ikanman_DLer(shinohayu)
 	# ik_book_shino.dl_whole_book()
-	dman = dl.DLManager()
+	# dman = dl.DLManager()
