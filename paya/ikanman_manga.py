@@ -4,8 +4,8 @@ import re
 import threading
 import time
 from urllib import request, error, parse
-from paya import basedler
-from paya.const import *
+import basedler
+from const import *
 import js2py
 
 

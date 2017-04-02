@@ -68,7 +68,8 @@ if __name__ == "__main__":
 	# id_book = str(input())
 	id_book = "4617223306170106339"
 	tenma = "4458002705630123103"
-	ne_book = netease.NetEase_DLer(tenma)
+	douluo3  = "4645740535490115552"
+	ne_book = netease.NetEase_DLer(douluo3)
 	ne_book._dl()
 
 	# ikm

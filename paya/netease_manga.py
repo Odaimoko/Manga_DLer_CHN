@@ -165,11 +165,12 @@ class NetEase_DLer(basedler.BaseDLer):
 	def __init__(self, bookid):
 		basedler.BaseDLer.__init__(self)
 		self.bookid = bookid  # str
-		self.bookname = NetEase_DLer.getBookName(self.bookid)
+		self.bookname = safe_file_name(NetEase_DLer.getBookName(self.bookid))
 		if self.bookname == None:  # 现在还没有本地书库
 			record_log(NetEase_DLer.log_book_file, "未能找到书本", ID_163, self.bookid)
 			self.can_dl = False
 			return
+		
 		self.dl_path = dl_dir + self.bookname + ID_163 + "/"
 		
 		self.already_pic_file_name = self.dl_path + already_pic_file  # 天才麻将少女/_163_already_pic.txt
@@ -241,7 +242,7 @@ class NetEase_DLer(basedler.BaseDLer):
 			num += 1
 			url = pics.split(": ")[2]  # 得到地址（分隔后最后一个）
 			url = url[1:len(url) - 2]  # 得到地址（拿来用）
-			file_name = folder_name + '{:0>3}'.format(str(num)) + ".png"  # 还是说其他格式？
+			file_name = folder_name + '{:0>3}'.format(str(num)) + ".jpg"  # 还是说其他格式？
 
 			# 应是jpg，因为有jfif的前缀
 
@@ -278,7 +279,7 @@ class NetEase_DLer(basedler.BaseDLer):
 			# chapter 是一个json，dict。 有 16 个key
 			num_of_chap += 1
 			# 多个篇章的文件夹分开装
-			chaptername = chapter["fullTitle"]
+			chaptername = safe_file_name(chapter["fullTitle"])
 			# 如果只有一个chapter，就不分开
 			if len(chapters) == 1:
 				chap_foldername = self.dl_path
@@ -292,12 +293,10 @@ class NetEase_DLer(basedler.BaseDLer):
 			num_of_ep = 0
 			for subsection in chapter["sections"]:
 				num_of_ep += 1
-				# if num_of_ep == 2:
-				# 	return
 				bookId = subsection["bookId"]
 				pages = subsection["wordCount"]
 				sectionId = subsection["sectionId"]
-				fullTitle = subsection["fullTitle"]
+				fullTitle = safe_file_name(subsection["fullTitle"])
 				url_one_wa = "https://manhua.163.com/reader/" + bookId + "/" + sectionId + "/"
 				ep_folder_name = chap_foldername + '{:0>4}'.format(
 					str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面

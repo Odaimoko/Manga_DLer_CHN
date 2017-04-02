@@ -183,6 +183,14 @@ def time_limit(interval):
 	return deco
 
 
+def safe_file_name(s):
+	if s==None:
+		return None
+	return s.replace("/", "／").replace("\\", "＼").replace("?", "？").\
+		replace("|", "｜").replace("<", "＜").replace(">", "＞").\
+		replace(",", "：").replace("\"", "＂").replace("*", "＊")
+	
+
 # OTHERS
 
 js_lib_by_py = """
