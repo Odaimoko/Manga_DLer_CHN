@@ -1,5 +1,5 @@
 from urllib import request, error
-from paya.const import *
+from const import *
 import socket
 
 

@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 import sys
 sys.path.append("..")
+sys.path.append(".")
 # print(sys.path)
 
-import paya.netease_manga as netease
-import paya.ikanman_manga as ikm
+import netease_manga as netease
+import ikanman_manga as ikm
 import os, re
 # import paya.dl_manager as dl
-from paya.const import *
+from const import *
 with open("ikm_Kai_mitsu.js", "rb") as f:
 	enc = f.read().decode("utf8")
 # with open("ez.js","r") as f:
@@ -62,11 +63,11 @@ if __name__ == "__main__":
 	# try_getJson()
 	createFolder(data_dir)
 	# 163
-	tenma = "4458002705630123103"
 	L_Dart = "4603479161120104695"  # 神契 幻奇谭
 	# getBookName("163", L_Dart)
 	# id_book = str(input())
 	id_book = "4617223306170106339"
+	tenma = "4458002705630123103"
 	ne_book = netease.NetEase_DLer(tenma)
 	ne_book._dl()
 

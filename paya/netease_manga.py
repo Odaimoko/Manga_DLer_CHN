@@ -6,8 +6,8 @@ import time
 from urllib import request, error
 # sys.path.append("..")
 
-from paya import basedler
-from paya.const import *
+import basedler
+from const import *
 
 # multiprocessing.Queue
 # import iMyUtil
@@ -258,7 +258,10 @@ class NetEase_DLer(basedler.BaseDLer):
 			if not isDLed:
 				shippai += 1
 				record_log(self.log_file_name, "Shippai This Folder:", folder_name, ", pic No:", num, " , URL: ", url)
-		# p.close()
+		if not shippai:
+				addToAlready(folder_name, self.already_ep_set, self.already_ep_file_name)
+			
+			# p.close()
 		# p.join()
 
 	def dl_whole_book(self):
