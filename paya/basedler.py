@@ -5,7 +5,7 @@ import socket
 
 class BaseDLer:
 	MAX_DL_TIMES = 1
-
+	MAX_EP_TIMES = 3
 	def __init__(self):
 		self.can_dl = True
 		self.already_pic_set = set()

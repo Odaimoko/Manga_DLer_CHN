@@ -69,7 +69,8 @@ if __name__ == "__main__":
 	id_book = "4617223306170106339"
 	tenma = "4458002705630123103"
 	douluo3  = "4645740535490115552"
-	ne_book = netease.NetEase_DLer(douluo3)
+	ganglian = "4475930658180096982"
+	ne_book = netease.NetEase_DLer(ganglian)
 	ne_book._dl()
 
 	# ikm

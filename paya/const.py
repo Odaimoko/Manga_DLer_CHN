@@ -1,4 +1,4 @@
-import threading, time, os, re
+import threading, time, os, re, string
 from functools import wraps
 from threading import Timer
 
@@ -182,14 +182,39 @@ def time_limit(interval):
 
 	return deco
 
+#
+# def safe_file_name(s):
+# 	if s==None:
+# 		return None
+# 	return s.replace("/", "／").replace("\\", "＼").replace("?", "？").\
+# 		replace("|", "｜").replace("<", "＜").replace(">", "＞").\
+# 		replace(",", "：").replace("\"", "＂").replace("*", "＊")
+
+
+def create_safefilepath_table():
+	table =  {
+		"/": "／",
+		"\\": "＼",
+		"?": "？",
+		"|": "｜",
+		"<": "＜",
+		">": "＞",
+		":": "：",
+		"\"": "＂",
+		"*": "＊"
+	}
+	table.update({
+		c: None for c in set([chr(i) for i in range(128)]).difference(string.printable)
+	})
+	return str.maketrans(table)
+
+
+safefilepath_table = create_safefilepath_table()
+
 
 def safe_file_name(s):
-	if s==None:
-		return None
-	return s.replace("/", "／").replace("\\", "＼").replace("?", "？").\
-		replace("|", "｜").replace("<", "＜").replace(">", "＞").\
-		replace(",", "：").replace("\"", "＂").replace("*", "＊")
-	
+	"""Return a safe directory name."""
+	return s.translate(safefilepath_table)
 
 # OTHERS
 
