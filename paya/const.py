@@ -159,9 +159,9 @@ def log_time(*text, record=None):
 			t = (func.__name__,) if not text else text
 			print(r, t)
 			r(*t, "花费时间", end - start, "秒")
-
+		
 		return impl
-
+	
 	return real_deco
 
 
@@ -170,29 +170,21 @@ def time_limit(interval):
 	def deco(func):
 		def time_out():
 			raise TimeoutError()
-
+		
 		@wraps(func)
 		def deco(*args, **kwargs):
 			timer = Timer(interval, time_out)
 			timer.start()
 			res = func(*args, **kwargs)
 			return res
-
+		
 		return deco
-
+	
 	return deco
 
-#
-# def safe_file_name(s):
-# 	if s==None:
-# 		return None
-# 	return s.replace("/", "／").replace("\\", "＼").replace("?", "？").\
-# 		replace("|", "｜").replace("<", "＜").replace(">", "＞").\
-# 		replace(",", "：").replace("\"", "＂").replace("*", "＊")
 
-
-def create_safefilepath_table():
-	table =  {
+def get_safe_file_name_table():
+	table = {
 		"/": "／",
 		"\\": "＼",
 		"?": "？",
@@ -209,12 +201,12 @@ def create_safefilepath_table():
 	return str.maketrans(table)
 
 
-safefilepath_table = create_safefilepath_table()
+replace_filename_table = get_safe_file_name_table()
 
 
 def safe_file_name(s):
-	"""Return a safe directory name."""
-	return s.translate(safefilepath_table)
+	return s.translate(replace_filename_table)
+
 
 # OTHERS
 
