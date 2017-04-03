@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import io
 import sys
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer,encoding='utf8') #改变标准输出的默认编码
 sys.path.append("..")
 sys.path.append(".")
 # print(sys.path)
@@ -70,6 +72,7 @@ if __name__ == "__main__":
 	tenma = "4458002705630123103"
 	douluo3  = "4645740535490115552"
 	ganglian = "4475930658180096982"
+	gude = "4317064958460053300"
 	ne_book = netease.NetEase_DLer(ganglian)
 	ne_book._dl()
 
