@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk
 
 root = Tk()
+root.title ("doda")
 l  = Listbox(root, height=5,selectmode="extended")
 l2 = Listbox(root, height=5,borderwidth="0")
 l.grid(column=0, row=0, sticky=(N, W, E, S))

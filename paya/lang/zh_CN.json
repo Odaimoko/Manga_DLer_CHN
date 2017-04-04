@@ -1,0 +1,16 @@
+{
+    "soft_title": "漫画爬呀 - Odaimoko",
+//    翻译
+    "page": "页",
+    "chapter": "篇章",
+    "already": "已下载",
+    "start_dl": "开始下载",
+    "retry": "重试",
+    "thtime": "次",
+//  错误处理
+//  书本相关
+      "error_getchapter_timeout": "获取章节超时，重试看看！~？",
+      "error_getbookname_timeout": "获取书名超时，重试看看！~？",
+      "error_getbookname_cannotfind": "未能找到书本",
+      "error_getbookname_nosuchid": "书本ID错啦，不存在。"
+}

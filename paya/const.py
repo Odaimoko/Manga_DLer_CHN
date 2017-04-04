@@ -1,4 +1,4 @@
-import threading, time, os, re, string
+import threading, time, os, re, string,json
 from functools import wraps
 from threading import Timer
 
@@ -21,6 +21,9 @@ already_ep_file = "already_ep.txt"
 log_file = "log.txt"
 shippai_file = "shippai.json"
 db_file = "db"
+
+# 语言
+lang_zh = "zh_CN"
 
 # =======================IDS==========================
 ID_163 = "_163_"
@@ -207,10 +210,20 @@ def get_safe_file_name_table():
 replace_filename_table = get_safe_file_name_table()
 
 
-def safe_file_name(s):
+def to_safe_file_name(s):
 	return s.translate(replace_filename_table)
 
-
+def init_locale(lang):
+	'''
+	
+	:param lang: language specified, zh_CN en_US ...
+	:return:
+	'''
+	with open("./lang/"+lang+".json","rb") as f:
+		content = f.read().decode("utf8")
+		object = json.loads(content)
+	return object
+	
 # OTHERS
 
 js_lib_by_py = """

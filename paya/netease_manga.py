@@ -165,7 +165,7 @@ class DLer(basedler.BaseDLer):
 	def __init__(self, bookid):
 		basedler.BaseDLer.__init__(self)
 		self.bookid = bookid  # str
-		self.bookname = safe_file_name(DLer.getBookName(self.bookid))
+		self.bookname = to_safe_file_name(DLer.getBookName(self.bookid))
 		if self.bookname == None:  # 现在还没有本地书库
 			record_log(DLer.log_book_file, "未能找到书本", ID_163, self.bookid)
 			self.can_dl = False
@@ -250,7 +250,7 @@ class DLer(basedler.BaseDLer):
 	
 	def dl_ep(self, pages, ep_url, folder_name):
 		""":returns 1 stands for no err, 0 stands for error occurrence"""
-		record_log(self.log_file_name, "开始下载", folder_name, "共", pages, "页")
+		record_log(self.log_file_name, "开始下载", folder_name,  pages, "页")
 		# p = Pool(pages)
 		createFolder(folder_name, self.log_file_name)
 		page_rq = request.Request(ep_url)
@@ -292,7 +292,7 @@ class DLer(basedler.BaseDLer):
 		if not self.chapters: # if empty list
 			return None # bye
 		chapter = self.chapters[index]
-		l = [safe_file_name(subsection["fullTitle"]) for subsection in chapter["sections"] ]  # str, pure ep names
+		l = [to_safe_file_name(subsection["fullTitle"]) for subsection in chapter["sections"]]  # str, pure ep names
 		return l
 	
 	def dl_whole_book(self):
@@ -301,7 +301,7 @@ class DLer(basedler.BaseDLer):
 			# chapter 是一个json，dict。 有 16 个key
 			num_of_chap += 1
 			# 多个篇章的文件夹分开装
-			chaptername = safe_file_name(chapter["fullTitle"])
+			chaptername = to_safe_file_name(chapter["fullTitle"])
 			# 如果只有一个chapter，就不分开
 			if len(self.chapters) == 1:
 				chap_foldername = self.dl_path
@@ -310,7 +310,7 @@ class DLer(basedler.BaseDLer):
 					str(num_of_chap)) + "_" + chaptername + '/'  # 格式化文件夹名字，用0补全前面
 			# print(len(chapter)) # 因为这个是dict，所以len就是 16（dict里元素个数）
 			# print( chapter )
-			record_log(self.log_file_name, "开始下载篇章", chap_foldername)
+			record_log(self.log_file_name, "开始下载","篇章", chap_foldername)
 			
 			num_of_ep = 0
 			for subsection in chapter["sections"]:
@@ -319,7 +319,7 @@ class DLer(basedler.BaseDLer):
 				bookId = subsection["bookId"]
 				pages = subsection["wordCount"]
 				sectionId = subsection["sectionId"]
-				fullTitle = safe_file_name(subsection["fullTitle"])
+				fullTitle = to_safe_file_name(subsection["fullTitle"])
 				url_one_wa = "https://manhua.163.com/reader/" + bookId + "/" + sectionId + "/"
 				ep_folder_name = chap_foldername + '{:0>4}'.format(
 					str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面

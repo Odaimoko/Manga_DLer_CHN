@@ -1,3 +1,4 @@
+import tkinter as tk
 def get_scale(root):
 	"""To display in high-dpi we need to grab the scale factor from OS"""
 
@@ -31,11 +32,18 @@ def get_scale(root):
 	return 1.0
 
 class UIdraw:
-	pass
+	def __init__(self):
+		# root
+		self.root = tk.Tk()
+		self.root.title("Manga DLer - Odaimoko")
+		tk.Label(self.root, text="书本id").grid(column=2,row=2)
+		
 
 class EventBinder:
 	pass
 
-class MainUI:
+class MainUI(UIdraw):
 	def __init__(self):
+		UIdraw.__init__(self)
+		self.root.mainloop()
 		pass
