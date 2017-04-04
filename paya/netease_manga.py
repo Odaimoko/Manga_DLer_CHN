@@ -153,7 +153,7 @@ def try_getJson():
 # 		str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
 # 	print(url_one_wa)
 # ep_dl_with_pool(pages, url_one_wa, ep_folder_name)
-class NetEase_DLer(basedler.BaseDLer):
+class DLer(basedler.BaseDLer):
 	# 初始化静态成员：网易地址
 	
 	main_site = "https://manhua.163.com/"
@@ -165,9 +165,9 @@ class NetEase_DLer(basedler.BaseDLer):
 	def __init__(self, bookid):
 		basedler.BaseDLer.__init__(self)
 		self.bookid = bookid  # str
-		self.bookname = safe_file_name(NetEase_DLer.getBookName(self.bookid))
+		self.bookname = safe_file_name(DLer.getBookName(self.bookid))
 		if self.bookname == None:  # 现在还没有本地书库
-			record_log(NetEase_DLer.log_book_file, "未能找到书本", ID_163, self.bookid)
+			record_log(DLer.log_book_file, "未能找到书本", ID_163, self.bookid)
 			self.can_dl = False
 			return
 		
@@ -187,7 +187,7 @@ class NetEase_DLer(basedler.BaseDLer):
 	
 	def getBookName(content):  # static method
 		# content => bookId
-		book_url = NetEase_DLer.main_site + NetEase_DLer.book_page + content
+		book_url = DLer.main_site + DLer.book_page + content
 		try:
 			response = request.urlopen(book_url)
 			webpage = response.read().decode("utf8")  # 也许人家不是utf8
@@ -197,13 +197,13 @@ class NetEase_DLer(basedler.BaseDLer):
 			# print(bookname)
 			if not bookname:
 				# 空list，说明这个页面不存在漫画，也就是id给错了
-				record_log(NetEase_DLer.log_book_file, "书本ID错啦，不存在。")
+				record_log(DLer.log_book_file, "书本ID错啦，不存在。")
 				return None
 			bookname = bookname[0]
 			bookname = bookname.replace('book-title="', '').replace('" h5Domain', '')
 			return bookname
 		except error.URLError:
-			record_log(NetEase_DLer.log_book_file, "获取超时，重试看看！~？")
+			record_log(DLer.log_book_file, "获取超时，重试看看！~？")
 			return None
 	
 	# def dl_pic(self, pic_url, file_name):

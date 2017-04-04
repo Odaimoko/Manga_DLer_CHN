@@ -73,7 +73,7 @@ if __name__ == "__main__":
 	douluo3  = "4645740535490115552"
 	ganglian = "4475930658180096982"
 	gude = "4317064958460053300"
-	ne_book = netease.NetEase_DLer(ganglian)
+	ne_book = netease.DLer(gude)
 	ne_book._dl()
 
 	# ikm
@@ -85,7 +85,7 @@ if __name__ == "__main__":
 	konan = "2027"
 	# print(ikm.ikanman_DLer.getBookName(shinohayu))
 	# print(ikm.ikanman_DLer.getBookName(toku))
-	# ik_book_pm = ikm.ikanman_DLer(toku)
+	# ik_book_pm = ikm.DLer(toku)
 	# ik_book_shino = ikm.ikanman_DLer(shinohayu)
 	# ik_book_shino.dl_whole_book()
 	# dman = dl.DLManager()
