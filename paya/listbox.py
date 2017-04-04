@@ -54,6 +54,7 @@ def changename(n):
 		lbox.insert(i, countrynames[i] + " " + str(n))
 	lbox.selection_set(idxs)
 
+
 def loop():
 	n = 0
 	import time

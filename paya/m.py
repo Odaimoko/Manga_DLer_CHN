@@ -12,8 +12,8 @@ import ikanman_manga as ikm
 import os, re
 # import paya.dl_manager as dl
 from const import *
-with open("ikm_Kai_mitsu.js", "rb") as f:
-	enc = f.read().decode("utf8")
+# with open("ikm_Kai_mitsu.js", "rb") as f:
+# 	enc = f.read().decode("utf8")
 # with open("ez.js","r") as f:
 # 	enc = f.read()
 # print(enc)
@@ -36,7 +36,6 @@ var cInfo = {
 } || {};
 """
 
-import js2py
 
 x = """
 var escape = function(text){pyimport urllib; return urllib.parse.quote(text)};
@@ -61,20 +60,17 @@ var writeto = function(content){pyimport paya; paya.const.writeTo(content);}
 # f()
 if __name__ == "__main__":
 	# 使用多线程： 用每个线程下载不同的图片（每一话新开pool）
-	# initializeAlready(already_tenma, already_tenma_file)
-	# try_getJson()
 	createFolder(data_dir)
 	# 163
 	L_Dart = "4603479161120104695"  # 神契 幻奇谭
-	# getBookName("163", L_Dart)
-	# id_book = str(input())
 	id_book = "4617223306170106339"
 	tenma = "4458002705630123103"
 	douluo3  = "4645740535490115552"
 	ganglian = "4475930658180096982"
 	gude = "4317064958460053300"
-	ne_book = netease.DLer(gude)
-	ne_book._dl()
+	ne_book = netease.DLer(ganglian)
+	# ne_book._dl()
+	print(ne_book.get_eplist_for_one_chap(0))
 
 	# ikm
 	shinohayu = "10360"

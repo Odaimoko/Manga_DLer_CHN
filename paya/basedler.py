@@ -30,7 +30,12 @@ class BaseDLer:
 		# name only
 		pass
 
-	def get_eplist(self, index=0):
+	def get_eplist_for_one_chap(self, index=0):
+		'''
+		
+		:param index: the index of chapter
+		:return: str list, just name
+		'''
 		pass
 
 	def record(self, *content):

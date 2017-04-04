@@ -182,8 +182,21 @@ class DLer(basedler.BaseDLer):
 		self.log_file_name = dl_log_dir + self.bookname + ID_163 + log_file  # log/天才麻将少女_163_log.txt
 		createFile(self.log_file_name)
 		self.to_dl_list = set()  # 待下载话，为以后选择话数下载准备
-		
+		self.chapters = []  # 网易漫画的章节，树状结构，其儿子为每一个chapter，见 dl_whole_book()
 		self.zip = True
+		
+		# after all
+		self._init()
+		
+	def _init(self):
+		json_url = "https://manhua.163.com/book/catalog/" + self.bookid + ".json"
+		rq = request.Request(json_url)
+		response = request.urlopen(rq)
+		menu_js = response.read().decode("utf8")
+		# print(type(js["catalog"]["sections"][0]["sections"][0]))
+		# print(len(js["catalog"]["sections"][1]["sections"]))
+		js = json.loads(menu_js)
+		self.chapters = js["catalog"]["sections"]
 	
 	def getBookName(content):  # static method
 		# content => bookId
@@ -244,7 +257,6 @@ class DLer(basedler.BaseDLer):
 			url = pics.split(": ")[2]  # 得到地址（分隔后最后一个）
 			url = url[1:len(url) - 2]  # 得到地址（拿来用）
 			file_name = folder_name + '{:0>3}'.format(str(num)) + ".jpg"  # 还是说其他格式？
-			
 			# 应是jpg，因为有jfif的前缀
 			
 			if file_name in self.already_pic_set:
@@ -268,23 +280,22 @@ class DLer(basedler.BaseDLer):
 		# p.close()
 		# p.join()
 	
+	def get_eplist_for_one_chap(self, index=0):
+		if not self.chapters: # if empty list
+			return None # bye
+		chapter = self.chapters[index]
+		l = [safe_file_name(subsection["fullTitle"]) for subsection in chapter["sections"] ]  # str, pure ep names
+		return l
+	
 	def dl_whole_book(self):
-		json_url = "https://manhua.163.com/book/catalog/" + self.bookid + ".json"
-		rq = request.Request(json_url)
-		response = request.urlopen(rq)
-		menu_js = response.read().decode("utf8")
-		js = json.loads(menu_js)
-		# print(type(js["catalog"]["sections"][0]["sections"][0]))
-		# print(len(js["catalog"]["sections"][1]["sections"]))
 		num_of_chap = 0
-		chapters = js["catalog"]["sections"]
-		for chapter in chapters:
+		for chapter in self.chapters:
 			# chapter 是一个json，dict。 有 16 个key
 			num_of_chap += 1
 			# 多个篇章的文件夹分开装
 			chaptername = safe_file_name(chapter["fullTitle"])
 			# 如果只有一个chapter，就不分开
-			if len(chapters) == 1:
+			if len(self.chapters) == 1:
 				chap_foldername = self.dl_path
 			else:
 				chap_foldername = self.dl_path + '{:0>2}'.format(
@@ -312,6 +323,6 @@ class DLer(basedler.BaseDLer):
 				while ep_dl_count < basedler.BaseDLer.MAX_EP_TIMES and not dl_succeeded:
 					ep_dl_count += 1
 					if (ep_dl_count > 1):
-						record_log(self.log_file_name,"重试",ep_folder_name,"第",ep_dl_count,"次")
+						record_log(self.log_file_name, "重试", ep_folder_name, "第", ep_dl_count, "次")
 					# if not succeed dling this ep, retry
 					dl_succeeded = self.dl_ep(pages, url_one_wa, ep_folder_name)
