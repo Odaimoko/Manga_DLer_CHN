@@ -9,12 +9,13 @@ from threading import Timer
 """
 文件夹名字若无说明，统一在后面加/
 """
-dl_dir = "../"
-log_dir = "../log/"
-dl_log_dir = log_dir + "dl/"
-data_dir = "../data/"
+dl_dir = "../"  # 下载的根目录
+log_dir = "../log/" # log的根目录
+dl_log_dir = log_dir + "dl/"    # 下载的log目录
+data_dir = "../data/"   #暂时没用
 # log文件放在一起，已下载每一个单独放在对应文件夹
 
+# 后缀
 already_pic_file = "already_pic.txt"
 already_ep_file = "already_ep.txt"
 log_file = "log.txt"
