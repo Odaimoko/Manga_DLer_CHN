@@ -157,9 +157,9 @@ def log_time(*text, record=None):
 			start = time.clock()
 			func(*args, **kw)
 			end = time.clock()
-			r = print if not record else record
+			r = print if not record else record # 如果没有record，默认print
 			t = (func.__name__,) if not text else text
-			print(r, t)
+			# print(r, t)
 			r(*t, "花费时间", end - start, "秒")
 		
 		return impl
