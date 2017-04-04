@@ -1,4 +1,4 @@
-import threading, time, os, re
+import threading, time, os, re, string
 from functools import wraps
 from threading import Timer
 
@@ -9,12 +9,13 @@ from threading import Timer
 """
 文件夹名字若无说明，统一在后面加/
 """
-dl_dir = "../"
-log_dir = "../log/"
-dl_log_dir = log_dir + "dl/"
-data_dir = "../data/"
+dl_dir = "../"  # 下载的根目录
+log_dir = "../log/" # log的根目录
+dl_log_dir = log_dir + "dl/"    # 下载的log目录
+data_dir = "../data/"   #暂时没用
 # log文件放在一起，已下载每一个单独放在对应文件夹
 
+# 后缀
 already_pic_file = "already_pic.txt"
 already_ep_file = "already_ep.txt"
 log_file = "log.txt"
@@ -160,9 +161,9 @@ def log_time(*text, record=None):
 			t = (func.__name__,) if not text else text
 			print(r, t)
 			r(*t, "花费时间", end - start, "秒")
-
+		
 		return impl
-
+	
 	return real_deco
 
 
@@ -171,19 +172,44 @@ def time_limit(interval):
 	def deco(func):
 		def time_out():
 			raise TimeoutError()
-
+		
 		@wraps(func)
 		def deco(*args, **kwargs):
 			timer = Timer(interval, time_out)
 			timer.start()
 			res = func(*args, **kwargs)
 			return res
-
+		
 		return deco
-
+	
 	return deco
 
 # def
+
+def get_safe_file_name_table():
+	table = {
+		"/": "／",
+		"\\": "＼",
+		"?": "？",
+		"|": "｜",
+		"<": "＜",
+		">": "＞",
+		":": "：",
+		"\"": "＂",
+		"*": "＊"
+	}
+	table.update({
+		c: None for c in set([chr(i) for i in range(128)]).difference(string.printable)
+	})
+	return str.maketrans(table)
+
+
+replace_filename_table = get_safe_file_name_table()
+
+
+def safe_file_name(s):
+	return s.translate(replace_filename_table)
+
 
 # OTHERS
 

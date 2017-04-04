@@ -39,14 +39,11 @@ nosetests.xml
 #测试用
 .idea/
 noth.py
+
 # log 文件
 *.txt
-神契 幻奇谭/
-咲慕流年/
-月刊少女野崎君/
 开始.bat
-半田君传说_163_/
 bs4/
-镇魂街_iKanMan_/
-咲慕流年_iKanMan_/
+?*_163_/
+?*_iKanMan_/
 杂项/

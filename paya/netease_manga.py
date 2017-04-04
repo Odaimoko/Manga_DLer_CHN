@@ -6,8 +6,8 @@ import time
 from urllib import request, error
 # sys.path.append("..")
 
-from paya import basedler
-from paya.const import *
+import basedler
+from const import *
 
 # multiprocessing.Queue
 # import iMyUtil
@@ -153,23 +153,24 @@ def try_getJson():
 # 		str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
 # 	print(url_one_wa)
 # ep_dl_with_pool(pages, url_one_wa, ep_folder_name)
-class NetEase_DLer(basedler.BaseDLer):
+class DLer(basedler.BaseDLer):
 	# 初始化静态成员：网易地址
 	
 	main_site = "https://manhua.163.com/"
 	book_page = "source/"
 	json_page = "book/catalog/"
 	log_book_file = log_dir + "book_log.txt"
-
+	
 	# 一个漫画对应一个
 	def __init__(self, bookid):
 		basedler.BaseDLer.__init__(self)
 		self.bookid = bookid  # str
-		self.bookname = NetEase_DLer.getBookName(self.bookid)
+		self.bookname = safe_file_name(DLer.getBookName(self.bookid))
 		if self.bookname == None:  # 现在还没有本地书库
-			record_log(NetEase_DLer.log_book_file, "未能找到书本", ID_163, self.bookid)
+			record_log(DLer.log_book_file, "未能找到书本", ID_163, self.bookid)
 			self.can_dl = False
 			return
+		
 		self.dl_path = dl_dir + self.bookname + ID_163 + "/"
 		
 		self.already_pic_file_name = self.dl_path + already_pic_file  # 天才麻将少女/_163_already_pic.txt
@@ -181,28 +182,28 @@ class NetEase_DLer(basedler.BaseDLer):
 		self.log_file_name = dl_log_dir + self.bookname + ID_163 + log_file  # log/天才麻将少女_163_log.txt
 		createFile(self.log_file_name)
 		self.to_dl_list = set()  # 待下载话，为以后选择话数下载准备
-
+		
 		self.zip = True
 	
 	def getBookName(content):  # static method
 		# content => bookId
-		book_url = NetEase_DLer.main_site + NetEase_DLer.book_page + content
+		book_url = DLer.main_site + DLer.book_page + content
 		try:
 			response = request.urlopen(book_url)
 			webpage = response.read().decode("utf8")  # 也许人家不是utf8
 			# 如果人家换了呢
-			patt = re.compile(r'<p class="book-title">.*</p>')
+			patt = re.compile(r'book-title=".*" h5Domain')
 			bookname = patt.findall(webpage)
 			# print(bookname)
 			if not bookname:
 				# 空list，说明这个页面不存在漫画，也就是id给错了
-				record_log(NetEase_DLer.log_book_file, "书本ID错啦，不存在。")
+				record_log(DLer.log_book_file, "书本ID错啦，不存在。")
 				return None
 			bookname = bookname[0]
-			bookname = bookname.replace('<p class="book-title">', '').replace('</p>', '')
+			bookname = bookname.replace('book-title="', '').replace('" h5Domain', '')
 			return bookname
 		except error.URLError:
-			record_log(NetEase_DLer.log_book_file, "获取超时，重试看看！~？")
+			record_log(DLer.log_book_file, "获取超时，重试看看！~？")
 			return None
 	
 	# def dl_pic(self, pic_url, file_name):
@@ -227,6 +228,7 @@ class NetEase_DLer(basedler.BaseDLer):
 	# 	return False
 	
 	def dl_ep(self, pages, ep_url, folder_name):
+		""":returns 1 stands for no err, 0 stands for error occurrence"""
 		record_log(self.log_file_name, "开始下载", folder_name, "共", pages, "页")
 		# p = Pool(pages)
 		createFolder(folder_name, self.log_file_name)
@@ -241,10 +243,10 @@ class NetEase_DLer(basedler.BaseDLer):
 			num += 1
 			url = pics.split(": ")[2]  # 得到地址（分隔后最后一个）
 			url = url[1:len(url) - 2]  # 得到地址（拿来用）
-			file_name = folder_name + '{:0>3}'.format(str(num)) + ".png"  # 还是说其他格式？
-
+			file_name = folder_name + '{:0>3}'.format(str(num)) + ".jpg"  # 还是说其他格式？
+			
 			# 应是jpg，因为有jfif的前缀
-
+			
 			if file_name in self.already_pic_set:
 				record_log(self.log_file_name, file_name, "已下载")
 				continue
@@ -252,15 +254,20 @@ class NetEase_DLer(basedler.BaseDLer):
 			# result = p.apply_async(pic_dl_with_pool, args=(url, file_name))
 			# isDLed = result.get() # 直接获取返回值，去你大爷的callback
 			# record_log(self.log_file_name,"isDLed",isDLed)
-
+			
 			# if isDLed:
 			# record_log(self.log_file_name, "图片下载成功", file_name)
 			if not isDLed:
 				shippai += 1
 				record_log(self.log_file_name, "Shippai This Folder:", folder_name, ", pic No:", num, " , URL: ", url)
+		if not shippai:
+			addToAlready(folder_name, self.already_ep_set, self.already_ep_file_name)
+			return 1
+		else:
+			return 0
 		# p.close()
 		# p.join()
-
+	
 	def dl_whole_book(self):
 		json_url = "https://manhua.163.com/book/catalog/" + self.bookid + ".json"
 		rq = request.Request(json_url)
@@ -275,7 +282,7 @@ class NetEase_DLer(basedler.BaseDLer):
 			# chapter 是一个json，dict。 有 16 个key
 			num_of_chap += 1
 			# 多个篇章的文件夹分开装
-			chaptername = chapter["fullTitle"]
+			chaptername = safe_file_name(chapter["fullTitle"])
 			# 如果只有一个chapter，就不分开
 			if len(chapters) == 1:
 				chap_foldername = self.dl_path
@@ -288,13 +295,12 @@ class NetEase_DLer(basedler.BaseDLer):
 			
 			num_of_ep = 0
 			for subsection in chapter["sections"]:
+				ep_dl_count = 0
 				num_of_ep += 1
-				# if num_of_ep == 2:
-				# 	return
 				bookId = subsection["bookId"]
 				pages = subsection["wordCount"]
 				sectionId = subsection["sectionId"]
-				fullTitle = subsection["fullTitle"]
+				fullTitle = safe_file_name(subsection["fullTitle"])
 				url_one_wa = "https://manhua.163.com/reader/" + bookId + "/" + sectionId + "/"
 				ep_folder_name = chap_foldername + '{:0>4}'.format(
 					str(num_of_ep)) + " " + fullTitle + '/'  # 格式化文件夹名字，用0补全前面
@@ -302,4 +308,10 @@ class NetEase_DLer(basedler.BaseDLer):
 				if ep_folder_name in self.already_ep_set:
 					record_log(self.log_file_name, ep_folder_name, "已下载")
 					continue
-				self.dl_ep(pages, url_one_wa, ep_folder_name)
+				dl_succeeded = 0
+				while ep_dl_count < basedler.BaseDLer.MAX_EP_TIMES and not dl_succeeded:
+					ep_dl_count += 1
+					if (ep_dl_count > 1):
+						record_log(self.log_file_name,"重试",ep_folder_name,"第",ep_dl_count,"次")
+					# if not succeed dling this ep, retry
+					dl_succeeded = self.dl_ep(pages, url_one_wa, ep_folder_name)

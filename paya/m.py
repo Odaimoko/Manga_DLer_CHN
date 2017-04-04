@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import io
 import sys
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer,encoding='utf8') #改变标准输出的默认编码
 sys.path.append("..")
+sys.path.append(".")
 # print(sys.path)
 
-import paya.netease_manga as netease
-import paya.ikanman_manga as ikm
+import netease_manga as netease
+import ikanman_manga as ikm
 import os, re
-import paya.dl_manager as dl
-from paya.const import *
+# import paya.dl_manager as dl
+from const import *
 with open("ikm_Kai_mitsu.js", "rb") as f:
 	enc = f.read().decode("utf8")
 # with open("ez.js","r") as f:
@@ -62,13 +65,16 @@ if __name__ == "__main__":
 	# try_getJson()
 	createFolder(data_dir)
 	# 163
-	tenma = "4458002705630123103"
 	L_Dart = "4603479161120104695"  # 神契 幻奇谭
 	# getBookName("163", L_Dart)
 	# id_book = str(input())
 	id_book = "4617223306170106339"
-	# ne_book = netease.NetEase_DLer(tenma)
-	# ne_book._dl()
+	tenma = "4458002705630123103"
+	douluo3  = "4645740535490115552"
+	ganglian = "4475930658180096982"
+	gude = "4317064958460053300"
+	ne_book = netease.DLer(gude)
+	ne_book._dl()
 
 	# ikm
 	shinohayu = "10360"
@@ -80,6 +86,9 @@ if __name__ == "__main__":
 	saki_ni = "5120"
 	# print(ikm.ikanman_DLer.getBookName(shinohayu))
 	# print(ikm.ikanman_DLer.getBookName(toku))
-	ik_book_pm = ikm.ikanman_DLer(toku)
-	ik_book_shino = ikm.ikanman_DLer(saki_ni)
-	ik_book_pm.dl_whole_book()
+
+	# ik_book_pm = ikm.DLer(toku)
+	# ik_book_shino = ikm.ikanman_DLer(shinohayu)
+	# ik_book_shino.dl_whole_book()
+	# dman = dl.DLManager()
+

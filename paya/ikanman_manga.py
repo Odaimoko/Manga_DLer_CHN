@@ -4,12 +4,12 @@ import re
 import threading
 import time
 from urllib import request, error, parse
-from paya import basedler
-from paya.const import *
+import basedler
+from const import *
 import js2py
 
 
-class ikanman_DLer(basedler.BaseDLer):
+class DLer(basedler.BaseDLer):
 	main_site = "http://www.ikanman.com"
 	book_page = "/comic/"
 	dl_site = ["http://i.hamreus.com:8080", "http://p.yogajx.com",
@@ -23,9 +23,9 @@ class ikanman_DLer(basedler.BaseDLer):
 	def __init__(self, bookid):
 		basedler.BaseDLer.__init__(self)
 		self.bookid = bookid  # str
-		self.bookname = ikanman_DLer.getBookName(self.bookid)
+		self.bookname = DLer.getBookName(self.bookid)
 		if self.bookname is None:  # 现在还没有本地书库
-			record_log(ikanman_DLer.log_book_file, "未能找到书本", ID_ikm, self.bookid)
+			record_log(DLer.log_book_file, "未能找到书本", ID_ikm, self.bookid)
 			self.can_dl = False
 			return
 		self.dl_path = dl_dir + self.bookname + ID_ikm + "/"
@@ -56,13 +56,13 @@ class ikanman_DLer(basedler.BaseDLer):
 	def getBookName(content):  # static method
 		# content => bookId
 
-		book_url = ikanman_DLer.main_site + ikanman_DLer.book_page + content
+		book_url = DLer.main_site + DLer.book_page + content
 		webpage = ""
 		try:
 			response = request.urlopen(book_url)
 			webpage = response.read().decode("utf8")  # 也许人家不是utf8
 		except error.URLError:
-			record_log(ikanman_DLer.log_book_file, "获取", content, "超时，重试看看！~？")
+			record_log(DLer.log_book_file, "获取", content, "超时，重试看看！~？")
 			return None
 
 		# 如果人家换了呢
@@ -71,7 +71,7 @@ class ikanman_DLer(basedler.BaseDLer):
 		# print(bookname)
 		if not bookname:
 			# 空list，说明这个页面不存在漫画，也就是id给错了
-			record_log(ikanman_DLer.log_book_file, "书本ID", content, "错啦，不存在。")
+			record_log(DLer.log_book_file, "书本ID", content, "错啦，不存在。")
 			return None
 		bookname = bookname[0]
 		end = bookname.find('</h1')
@@ -142,7 +142,7 @@ class ikanman_DLer(basedler.BaseDLer):
 		path = eval_result["path"]
 		title = eval_result["bname"]
 		subtitle = eval_result["cname"]
-		dl_prefix = [dlsite + q(path) for dlsite in ikanman_DLer.dl_site]
+		dl_prefix = [dlsite + q(path) for dlsite in DLer.dl_site]
 		shippai = 0
 		for num, file in enumerate(files):
 			num += 1  # won't change num permanently
@@ -181,7 +181,7 @@ class ikanman_DLer(basedler.BaseDLer):
 	def dl_whole_book(self):
 		record_log(self.log_file_name, "开始下载", self.bookname, ID_ikm)
 		# 怎么样只用response一次？getBookname里面也有一次。 或者存下来，之后删掉。
-		book_url = ikanman_DLer.main_site + ikanman_DLer.book_page + self.bookid + "/"
+		book_url = DLer.main_site + DLer.book_page + self.bookid + "/"
 		# book_url = "file:///C:/Users/%E5%BD%B1%E9%A3%8E%E7%A7%A6/Desktop/%E7%A5%9E%E5%A5%87%E5%AE%9D%E8%B4%9D%E7%89%B9%E5%88%AB%E7%AF%87%E6%BC%AB%E7%94%BB%E6%9C%AA%E4%BF%AE%E6%94%B9.html"
 		# book_url = "file:///C:/Users/%E5%BD%B1%E9%A3%8E%E7%A7%A6/Desktop/%E7%A5%9E%E5%A5%87%E5%AE%9D%E8%B4%9D%E7%89%B9%E5%88%AB%E7%AF%87%E6%BC%AB%E7%94%BB_.html"
 		# print(book_url)
@@ -238,7 +238,7 @@ class ikanman_DLer(basedler.BaseDLer):
 					# 	break
 					a = li.a
 
-					ep_url = ikanman_DLer.main_site + a["href"]  # a[href]是/comic/6540/163709.html
+					ep_url = DLer.main_site + a["href"]  # a[href]是/comic/6540/163709.html
 					i_con = li.i.contents  # NaviString
 					pages = str(i_con[0])[:-1]
 					pages = int(pages)
