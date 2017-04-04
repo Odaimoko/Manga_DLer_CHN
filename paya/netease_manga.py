@@ -187,11 +187,19 @@ class DLer(basedler.BaseDLer):
 		
 		# after all
 		self._init()
-		
+	
 	def _init(self):
 		json_url = "https://manhua.163.com/book/catalog/" + self.bookid + ".json"
 		rq = request.Request(json_url)
-		response = request.urlopen(rq)
+		response = None
+		try:
+			response = request.urlopen(rq,timeout=2)
+		except error.URLError:
+			record_log(DLer.log_book_file, "获取章节超时，重试看看！~？")
+
+		if response==None:
+			return
+		
 		menu_js = response.read().decode("utf8")
 		# print(type(js["catalog"]["sections"][0]["sections"][0]))
 		# print(len(js["catalog"]["sections"][1]["sections"]))
@@ -216,7 +224,7 @@ class DLer(basedler.BaseDLer):
 			bookname = bookname.replace('book-title="', '').replace('" h5Domain', '')
 			return bookname
 		except error.URLError:
-			record_log(DLer.log_book_file, "获取超时，重试看看！~？")
+			record_log(DLer.log_book_file, "获取书名超时，重试看看！~？")
 			return None
 	
 	# def dl_pic(self, pic_url, file_name):
