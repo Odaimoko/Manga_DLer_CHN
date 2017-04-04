@@ -148,6 +148,7 @@ def writeTo(content, file=None):
 			f.write("\n")
 
 
+# DECORATORS
 def log_time(*text, record=None):
 	def real_deco(func):
 		@wraps(func)
@@ -182,6 +183,7 @@ def time_limit(interval):
 
 	return deco
 
+# def
 
 # OTHERS
 

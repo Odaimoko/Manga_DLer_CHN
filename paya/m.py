@@ -77,9 +77,9 @@ if __name__ == "__main__":
 	cike = "8632"
 	zhenhunjie = "9082"
 	konan = "2027"
+	saki_ni = "5120"
 	# print(ikm.ikanman_DLer.getBookName(shinohayu))
 	# print(ikm.ikanman_DLer.getBookName(toku))
-	# ik_book_pm = ikm.ikanman_DLer(toku)
-	# ik_book_shino = ikm.ikanman_DLer(shinohayu)
-	# ik_book_shino.dl_whole_book()
-	dman = dl.DLManager()
+	ik_book_pm = ikm.ikanman_DLer(toku)
+	ik_book_shino = ikm.ikanman_DLer(saki_ni)
+	ik_book_pm.dl_whole_book()

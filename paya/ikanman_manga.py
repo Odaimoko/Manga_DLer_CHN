@@ -161,21 +161,21 @@ class ikanman_DLer(basedler.BaseDLer):
 			# 必须把汉字转成utf8流
 			# 其他错误 'ascii' codec can't encode characters in position 31-33: ordinal not in range(128)
 			start = time.clock()
-			# isDLed = self.dl_pic(pic_url, file_name)
+			isDLed = self.dl_pic(pic_url, file_name)
 			end = time.clock()
 			self.record("下载图片耗时", end - start, "s")
-		# if not isDLed:
-		# 	shippai += 1
-		# if not shippai:
-		# 	record_log(self.log_file_name, folder_name, "下载完成")
-		# 	if self.zip:
-		# 		basedler.BaseDLer.zip_one_ep(folder_name)
-		# 	addToAlready(folder_name, self.already_ep_set, self.already_ep_file_name)
-		# else:
-		# 	# 写入文件（重新写一遍）
-		# 	with open(self.mikanse_file_name,"w") as f:
-		# 		json.dump(self.mikanse,fp=f,indent="\t",sort_keys=True)
-		# 	record_log(self.log_file_name, folder_name, shippai, "张图片挂了")
+			if not isDLed:
+				shippai += 1
+		if not shippai:
+			record_log(self.log_file_name, folder_name, "下载完成")
+			if self.zip:
+				basedler.BaseDLer.zip_one_ep(folder_name)
+			addToAlready(folder_name, self.already_ep_set, self.already_ep_file_name)
+		else:
+			# 写入文件（重新写一遍）
+			with open(self.mikanse_file_name,"w") as f:
+				json.dump(self.mikanse,fp=f,indent="\t",sort_keys=True)
+			record_log(self.log_file_name, folder_name, shippai, "张图片挂了")
 
 
 	def dl_whole_book(self):
@@ -245,8 +245,8 @@ class ikanman_DLer(basedler.BaseDLer):
 					fullTitle = a["title"]
 					pure_folder_name = '{:0>4}'.format(str(num_of_ep)) + " " + fullTitle
 					ep_folder_name = chap_foldername + pure_folder_name + '/'  # 格式化文件夹名字，用0补全前面
-					print(ep_folder_name, ep_url)
-					continue
+					# print(ep_folder_name, ep_url)
+
 					if ep_folder_name in self.already_ep_set:
 						record_log(self.log_file_name, ep_folder_name, "已下载")
 						continue

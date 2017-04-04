@@ -140,3 +140,7 @@ class BaseDLer:
 	def _dl(self):
 		if self.can_dl:
 			self.dl_whole_book()
+
+	def log_wrapper(self, *text):
+		log = log_time(*text, self.record)
+		return log
