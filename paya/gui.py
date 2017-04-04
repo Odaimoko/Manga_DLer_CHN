@@ -30,6 +30,11 @@ def get_scale(root):
 
 	return 1.0
 
+class UIdraw:
+	pass
+
+class EventBinder:
+	pass
 
 class MainUI:
 	def __init__(self):
