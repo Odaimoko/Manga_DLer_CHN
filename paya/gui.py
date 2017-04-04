@@ -40,31 +40,37 @@ class UIdraw:
 		# root
 		self.root = Tk()
 		self.root.title("Manga DLer - Odaimoko")
-		self.search_text = StringVar(self.root)
-		self.link_text = StringVar(self.root)
-		self.input_combo_text = StringVar(self.root)
+		self.mainframe = ttk.Frame(self.root)
+		self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
+		self.search_text = StringVar(self.mainframe)
+		self.link_text = StringVar(self.mainframe)
+		self.input_combo_text = StringVar(self.mainframe)
 		
-		self.inputlabel = ttk.Label(self.root, text="输入书本id→")
+		self.inputlabel = ttk.Label(self.mainframe, text="输入书本id→")
 		self.inputlabel.grid(column=10, row=row1)
-		self.inputlink = ttk.Entry(self.root, textvariable=self.link_text)
+		self.inputlink = ttk.Entry(self.mainframe, textvariable=self.link_text)
 		self.inputlink.grid(column=20, row=row1)
-		self.input_combo = ttk.Combobox(self.root, textvariable=self.input_combo_text,
+		self.input_combo = ttk.Combobox(self.mainframe, textvariable=self.input_combo_text,
 		                                state="readonly",width=10)
-		self.input_combo.grid(column=30, row=row1)
-		self.inputbtn = ttk.Button(self.root, text="分析")
-		self.inputbtn.grid(column=40, row=row1)
+		self.input_combo.grid(column=25, row=row1)
+		self.inputbtn = ttk.Button(self.mainframe, text="分析")
+		self.inputbtn.grid(column=30, row=row1)
 		
-		self.inputlabel = ttk.Label(self.root, text="搜本地书名↓")
+		self.inputlabel = ttk.Label(self.mainframe, text="搜本地书名↓")
 		self.inputlabel.grid(column=10, row=30)
-		self.searchlocal = ttk.Entry(self.root, textvariable=self.search_text)
+		self.searchlocal = ttk.Entry(self.mainframe, textvariable=self.search_text)
 		self.searchlocal.grid(column=10, row=50)
-		
-		self.localbooks = Listbox(self.root, height=10)
+		# 已下载过的书
+		self.localbooks = Listbox(self.mainframe, height=10)
 		self.localbooks.grid(column=10, row=100)
-		
-		self.episode_list = Listbox(self.root, height=10)
+		# 每一话
+		self.episode_list = Listbox(self.mainframe, height=10)
 		self.episode_list.grid(column=20, row=100)
-		self.episodes_scrollbar = ttk.Scrollbar(self.root, orient=VERTICAL, command=self.episode_list.yview)
+		# 配套进度
+		self.episodes_dling = Listbox(self.mainframe, height=10)
+		self.episodes_dling.grid(column=25,row=100)
+		
+		self.episodes_scrollbar = ttk.Scrollbar(self.mainframe, orient=VERTICAL, command=self.episode_list.yview)
 		self.episodes_scrollbar.grid(column=30, row=100)
 		self.episode_list.configure(yscrollcommand=self.episodes_scrollbar.set)
 
