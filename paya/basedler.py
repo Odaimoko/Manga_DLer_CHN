@@ -1,5 +1,7 @@
 from urllib import request, error
 from paya.const import *
+from PIL import Image
+import os
 import socket
 
 
@@ -41,7 +43,7 @@ class BaseDLer:
 	def record(self, *content):
 		record_log(self.log_file_name, *content)
 
-	def dl_pic(self, pic_url, file_name):
+	def dl_pic(self, pic_url, file_name): # filename后缀名是jpgtemp
 		# Return True: Successfully , False otherwise
 		# pic_url may be a list or a str
 		# print(type(pic_url))
@@ -66,17 +68,29 @@ class BaseDLer:
 			while dl_times < BaseDLer.MAX_DL_TIMES:
 				dl_times += 1
 				rq = request.Request(pic_url)  # 也许有机会重用一个对象，因为这里每次都要新建一个
-				# rq.add_header('User-Agent', 'Mozilla/4.0(compatible;MSIE5.5;WindowsNT)')
+				rq.add_header('User-Agent', 'Mozilla/4.0(compatible;MSIE5.5;WindowsNT)')
 				try:
-					start = time.clock()
+					# start = time.clock()
 					response = request.urlopen(rq, timeout=2)
-					end = time.clock()
+					# end = time.clock()
 					# self.record("Reading pics..", end - start, "s")
-					start = time.clock()
-					with open(file_name, "wb") as pic:
+					# start = time.clock()
+					temp_file_name = file_name+"temp"
+
+					with open(temp_file_name, "wb") as pic:
 						pic.write(response.read())
+					# 强制转换成jpg格式，利用PIL库
+					try:
+						im = Image.open(temp_file_name)
+						im.save(file_name,"JPEG")
+						os.remove(temp_file_name)
 						addToAlready(file_name, self.already_pic_set, self.already_pic_file_name)
-					end = time.clock()
+					except IOError as e:
+						# nonlocal to_record
+						record_broken_pic()
+						self.record("Can't create jpg file for", file_name)
+						to_record = ("错误",e)
+					# end = time.clock()
 				# self.record("Writing pics...", end - start, "s")
 				except Exception as e:
 					record_broken_pic()

@@ -166,7 +166,7 @@ class DLer(basedler.BaseDLer):
 			#  pic_url = [prefix + q(file.replace(".webp", "")) for prefix in dl_prefix] # 废弃
 			# print("转换后", pic_url)
 
-			file_name = folder_name + '{:0>3}'.format(str(num)) + ".jpg"  # 还是说其他格式？ 就是jpg
+			file_name = folder_name + '{:0>3}'.format(str(num)) + ".jpg"  # 先不用固定的jpg，先用temp装上，在dl完毕之后转换成jpg
 			if file_name in self.already_pic_set:
 				record_log(self.log_file_name, file_name, "已下载")
 				continue
@@ -195,8 +195,6 @@ class DLer(basedler.BaseDLer):
 		record_log(self.log_file_name, "开始下载", self.bookname, ID_ikm)
 		# 怎么样只用response一次？getBookname里面也有一次。 或者存下来，之后删掉。
 		book_url = DLer.main_site + DLer.book_page + self.bookid + "/"
-		# book_url = "file:///C:/Users/%E5%BD%B1%E9%A3%8E%E7%A7%A6/Desktop/%E7%A5%9E%E5%A5%87%E5%AE%9D%E8%B4%9D%E7%89%B9%E5%88%AB%E7%AF%87%E6%BC%AB%E7%94%BB%E6%9C%AA%E4%BF%AE%E6%94%B9.html"
-		# book_url = "file:///C:/Users/%E5%BD%B1%E9%A3%8E%E7%A7%A6/Desktop/%E7%A5%9E%E5%A5%87%E5%AE%9D%E8%B4%9D%E7%89%B9%E5%88%AB%E7%AF%87%E6%BC%AB%E7%94%BB_.html"
 		# print(book_url)
 		rq = request.Request(book_url)
 		start = time.clock()

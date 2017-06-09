@@ -145,6 +145,8 @@ def encodeURIComponent(to):
 	return result.upper()
 
 
+
+
 def writeTo(content, file=None):
 	if not file:
 		with open("temp.txt", "w") as f:
