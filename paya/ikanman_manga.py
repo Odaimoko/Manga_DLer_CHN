@@ -15,7 +15,8 @@ class DLer(basedler.BaseDLer):
 	main_site = "http://www.ikanman.com"
 	book_page = "/comic/"
 	dl_site = ["http://i.hamreus.com:8080", "http://p.yogajx.com",
-	           "http://cf.hamreus.com:8080", "http://idx0.hamreus.com:8080"]  # 下载地址path自带/
+	           "http://cf.hamreus.com:8080", "http://idx0.hamreus.com:8080"
+			   ,"http://p.szhkshop.com"]  # 下载地址path自带/
 	# 它的图床还有可能不一样= =估计是到了比较新的漫画（或者比较新的章节）
 	# 自动/ / 电信/连通/
 
@@ -158,9 +159,9 @@ class DLer(basedler.BaseDLer):
 		shippai = 0
 		for num, file in enumerate(files):
 			num += 1  # won't change num permanently
-			print("转换前", file)
+			# print("转换前", file)
 
-			pic_url = [prefix + q(file.replace(".webp", "")).replace("%25", "%") for prefix in dl_prefix]
+			pic_url = [prefix + q(file).replace("%25", "%") for prefix in dl_prefix]
 			# 如果本身有%20这样的空格，会转化成%2520，应该转回来
 			#  pic_url = [prefix + q(file.replace(".webp", "")) for prefix in dl_prefix] # 废弃
 			# print("转换后", pic_url)
