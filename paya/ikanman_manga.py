@@ -1,11 +1,13 @@
+# !/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import json
 import os
 import re
 import threading
 import time
 from urllib import request, error, parse
-import basedler
-from const import *
+import paya.basedler as basedler
+from paya.const import *
 import js2py
 
 
@@ -82,7 +84,8 @@ class DLer(basedler.BaseDLer):
 
 	def dl_ep(self, pages, ep_url, folder_name):
 		# folder_name是这一章的目录
-		script_symbol = "eval(decryptDES"
+		# script_symbol = "eval(decryptDES"
+		script_symbol = "function(p,a,c,k,e,d)" # 这个应该永远不出= =
 		from multiprocessing.pool import Pool
 		import multiprocessing
 		record_log(self.log_file_name, "开始下载", folder_name, "共", pages, "页")
@@ -94,6 +97,8 @@ class DLer(basedler.BaseDLer):
 		end = time.clock()
 		self.record("读取一话页面耗时", end - start, "s")
 		str_con = response.read().decode("utf8")
+		# str_con="""
+# <!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml"><head><title>恋爱足球my ball第01回_恋爱足球my ball漫画 - 看漫画</title><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta name="keywords" content="第01回,恋爱足球my ball,いのうえ空,漫画,看漫画" /><meta name="Description" content="恋爱足球my ball第01回,在线看恋爱足球my ball漫画就在看漫画" /><link rel="stylesheet" type="text/css" href="http://c.3qfm.com/css/detail_07A954DB218D118BF76A193BC9849504.css" /><script type="text/javascript" src="http://c.3qfm.com/scripts/config_25855B4C08F7A6545A30D049ABD0F9EE.js"></script><!--[if IE 6]><script type="text/javascript">document.execCommand("BackgroundImageCache", false, true);</script><![endif]--></head><body><div class="header"><div class="header-inner"><div class="w980"><div class="search fr pr"><input id="txtKey" value="" /><button id="btnSend">搜索</button><div id="sList" class="sList shadow"></div></div><span class="nav"><a href="/" title="返回首页" class="logo"></a><a href="/update/" class="pr new-update">最新更新<i></i></a><a href="/list/">漫画大全</a><a href="/list/wanjie/">完结</a><a href="/list/lianzai/">连载</a><a href="/rank/">排行榜</a><a href="/list/japan/">日本漫画</a></span><span class="more pr" id="nav-sec"><strong>更多类别</strong><i></i><div class="content shadow nav-sec"></div></span><span class="more pr" id="history"><strong>我的浏览记录</strong><i></i><div class="content shadow" id="hList"><span class="hNone">loading...</span></div></span><span class="menu-end"></span></div></div></div><div class="gg_950"><script type="text/javascript"> document.write('<a style="display:none!important" id="tanx-a-mm_27549993_4204197_26768731"></a>'); tanx_s = document.createElement("script"); tanx_s.type = "text/javascript"; tanx_s.charset = "gbk"; tanx_s.id = "tanx-s-mm_27549993_4204197_26768731"; tanx_s.async = true; tanx_s.src = "http://p.tanx.com/ex?i=mm_27549993_4204197_26768731"; tanx_h = document.getElementsByTagName("head")[0]; if(tanx_h)tanx_h.insertBefore(tanx_s,tanx_h.firstChild); </script></div><div class="w980 title"><div class="fr"><span class="lighter-close" id="lighter">关灯</span></div><div><h1><a href="/comic/18557/">恋爱足球my ball</a></h1><em>/</em><h2>第01回</h2><em>/</em><span>(<span id="page"></span>/32)</span></div></div><div class="w980 tc"><div class="main-btn"><a href="#" id="viewList" class="btn-red">目录列表</a><a href="#" class="btn-red prevC">上一章</a><a href="javascript:void(0);" id="prev" class="btn-red">上一页</a><select id="pageSelect"></select><a href="javascript:void(0);" id="next" class="btn-red">下一页</a><a href="#" class="btn-red nextC">下一章</a><a href="/comic/18557/#SOHUCS" class="btn-red" target="_blank">我要评论</a></div></div><div class="w980 clearfix sub-btn"><div class="servList fr" id="servList"><ul><li><a href="javascript:;">线路→</a></li></ul></div><div class="fl support"><ul><li class="pr" id="shortcuts"><a href="javascript:;" class="support-shortcuts">快捷键</a></li><li class="pr" id="qrcodes"><a href="javascript:;" id="tool-qr" class="qrcode">二维码</a></li><li><a href="javascript:;" id="tool-speed" class="speed">极速</a></li><li class="pr" id="zoomtool"><a href="javascript:;" id="tool-zoom" class="zoomin">缩放</a></li><li><a href="javascript:;" id="tool-rotate" class="rotate">旋转</a></li><li><a href="javascript:;" id="tool-crop" class="crop">裁切</a></li><li><a href="javascript:;" id="tool-gray" class="gray">滤镜</a></li><li><a href="javascript:;" id="support-error" class="error">报错</a></li><li><span class="pr arrow shareto">翻页→</span></li></ul></div><div class="fl pfList" id="share"></div></div><div class="clearfix"><table border="0" cellspacing="0" cellpadding="0" class="pr tbCenter cb"><tr><td align="center" id="tbBox"><div class="img-loading" id="imgLoading"><i></i><span>图片努力加载中，请稍候</span></div><div align="center" id="mangaBox"></div><div id="imgPreLoad"></div></td></tr></table></div><script type="text/javascript">window["\x65\x76\x61\x6c"](function(p,a,c,k,e,d){e=function(c){return(c<a?"":e(parseInt(c/a)))+((c=c%a)>35?String.fromCharCode(c+29):c.toString(36))};if(!''.replace(/^/,String)){while(c--)d[e(c)]=k[c]||e(c);k=[function(e){return d[e]}];e=function(){return'\\w+'};c=1;};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p;}('R o={"p":4,"q":"n j","k":"4.2","m":r,"w":"x","y":["v.2.3","s.2.3","t.2.3","u.2.3","9.2.3","a.2.3","7.2.3","6.2.3","5.2.3","b.2.3","g.2.3","h.2.3","i.2.3","f.2.3","c.2.3","d.2.3","e.2.3","8.2.3","I.2.3","S.2.3","T.2.3","Q.2.3","N.2.3","O.2.3","P.2.3","U.2.3","10.2.3","Y.2.3","Z.2.3","W.2.3","X.2.3","V.2.3"],"D":E,"F":C,"z":"/A/l/B/K/","L":1,"M":"","J":G,"H":0}||{};',62,63,'D7BWAcHNgdwUwEbmARgBwFYMHZgE4B9AZmwz2DQIBYAmI87AnANjVUudauAyaJubBmBGnmwpUABgLY0ecil4Yqk3CmHMqeDKkYo8RbiipNlbFChmSMRVDWp4qOlEQKZVwBAEMANj8/gAJYAxiDBgQAmwIDSBoCMToDNsYDALgC2AJ7AwQCSAHYAZgD2npGe2V7JcMA01hho3PZmEq7M2FS4JjStNKgEzHi9GaXlwIA03pIogHtqwLmBPnAAzsDgXgAuABaLc9w+XgBeAI5p3n4EANbA/FOB2YFzq3BRub5zFbPZldWYiwBOcABumVF9DJWJJgNk4AAPZYA4BeYLLAgSObLFYAVwWCB8+WCJwIwVCdAI2kkoI6TFq5BovHoKkq9jwaHEwF+Xi+7z4RB0NEsKEkhkqwlEtXO9hInPO0mMREEREsZCZNEoKGw0sqhCqnxojCIkgZQA='['\x73\x70\x6c\x69\x63']('\x7c'),0,{})) </script><script type="text/javascript" src="http://c.3qfm.com/scripts/core_0BA1BF3DA711E363A46937D8393D038A.js"></script><div class="gg_950" style="margin-bottom:8px"><script type="text/javascript"> document.write('<a style="display:none!important" id="tanx-a-mm_27549993_4204197_58548400"></a>'); tanx_s = document.createElement("script"); tanx_s.type = "text/javascript"; tanx_s.charset = "gbk"; tanx_s.id = "tanx-s-mm_27549993_4204197_58548400"; tanx_s.async = true; tanx_s.src = "http://p.tanx.com/ex?i=mm_27549993_4204197_58548400"; tanx_h = document.getElementsByTagName("head")[0]; if(tanx_h)tanx_h.insertBefore(tanx_s,tanx_h.firstChild); </script></div><div class="gg_950 jghf"><script type="text/javascript" src="http://u.yiiwoo.com/seemh.js"></script></div><div class="w980 tc"><div class="pager" id="pagination"></div></div><div class="gg_950 jghf" style="margin-bottom:8px"><script src='http://121.40.25.88/seemh3.js'></script></div><div class="gg_300" style="margin:0 auto 12px; width:920px"><div class="gg_300 fl jghf" style="margin-right:10px;"><script src='http://121.40.25.88/ik300.js'></script></div><div class="gg_300 fl jghf" style="margin-right:10px;"><script src='http://121.40.25.88/ik3002.js'></script></div><div class="gg_300 fl jghf"><script src='http://121.40.25.88/ik3003.js'></script></div></div><div class="footer"><div class="footer-main"><div class="w980 tc"> 恋爱足球my ball第01回来自网友分享和上传，以便漫画爱好者研究漫画技巧和构图方式，禁止任何形式的下载！若喜欢，请支持购买正版！ <script type="text/javascript" src="http://c.3qfm.com/scripts/footer_2DB6C055C0D0ABD5D8ED8A4EA5ADCE93.js"></script></div></div></div></body></html>"""
 		from bs4 import BeautifulSoup
 
 		soup = BeautifulSoup(str_con, "html.parser")
@@ -107,23 +112,30 @@ class DLer(basedler.BaseDLer):
 				if script_symbol in st:
 					script = st
 					break
-		script = script[5:-2]  # 去掉eval( 和 );
+		script = script[27:-2]  # 去掉eval( 和 );		# 2017-06-08：新的加密手段里，是WINDOW["EVAL"](所以是前面 15个
+
+		patt = re.compile(r'function\(p.*;}\(')
+		ma = patt.findall(script)
+		script=script.replace(ma[0],"decode_pack(")
+		# 情况这样：ikm_kai.JS里是新的解密js，那里定义好的decode_pack 函数，和这里的function(P A C K E D)一样
+		#  所以应该去除的是最前面的func部分，换成decode pack
+
+		print()
 		# print(script)
 		# 总之已经获取到加密后的JS了。 其实可以直接第五个？
 		# 假定现在已经获取了解密后的    ========= 已经获取了！！！！！！！！！！！！！！
 		# 如果可以，还是加载页面上的比较好 xxxx 如果重新洗一个encodeURIConnection
-		# with open("ikm_Kai_mitsu.js", "rb") as f:
-		# 	kaimitsu_js = f.read().decode("utf8")
 
-		kaimitsu_js = js2py.get_file_contents("ikm_Kai_mitsu.js")
+		kaimitsu_js = js2py.get_file_contents("ikm_kai.js")	# 20170608 他换了一种ikm的加密手段
 		start = time.clock()
-		decrypt_result = js2py.eval_js(js_lib_by_py + kaimitsu_js + script)
+		decrypt_result = js2py.eval_js(kaimitsu_js + script)
 		# print(type(decrypt_result)) # <class 'str'>
 		# print("decrypt_result",decrypt_result)
 		# 应该在这里就修正decrypt_result EX ASCII的
-		true_list = [ord(c) for c in decrypt_result]
+		result_in_bytes = [c for c in decrypt_result.encode("utf8")] # 把结果转成utf8码，然后化成256以内的bytes（int）的list
+		# true_list = [ord(c) for c in decrypt_result] # 这里不好的是，如果有汉字，那么就会ORD(C)就会很大，下面bytes化只能0~255
 		# print("real encode", bytes(true_list))
-		true_result = bytes(true_list).decode("utf8")
+		true_result = bytes(result_in_bytes).decode("utf8")
 		# print("true result",true_result)
 		eval_result = js2py.eval_js(true_result)
 		end = time.clock()

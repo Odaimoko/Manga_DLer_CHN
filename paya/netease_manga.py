@@ -1,3 +1,5 @@
+# !/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import json
 import os, sys
 import re
@@ -6,8 +8,8 @@ import time
 from urllib import request, error
 # sys.path.append("..")
 
-import basedler
-from const import *
+import paya.basedler as basedler
+from paya.const import *
 
 # multiprocessing.Queue
 # import iMyUtil

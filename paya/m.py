@@ -3,14 +3,15 @@
 import io
 import sys
 
-
-import netease_manga as netease
-import ikanman_manga as ikm
+sys.path.append("..")  # 使用方法：python 本目录的本文件
+sys.path.append(".")
+import paya.netease_manga as netease
+import paya.ikanman_manga as ikm
 import os, re
 # import paya.dl_manager as dl
-from const import *
+from paya.const import *
 import tkinter
-import gui
+import paya.gui
 
 # @log_time("这个操作")
 # def f():
@@ -21,8 +22,7 @@ import gui
 # lang = init_locale(lang_zh)
 if __name__ == "__main__":
 	sys.stdout = io.TextIOWrapper(sys.stdout.buffer,encoding='utf8') #改变标准输出的默认编码
-	sys.path.append("..")   # 使用方法：python 本目录的本文件
-	sys.path.append(".")
+
 	# 使用多线程： 用每个线程下载不同的图片（每一话新开pool）
 	createFolder(data_dir)
 	# 163
@@ -39,18 +39,20 @@ if __name__ == "__main__":
 	# search_text.set("搜索本地漫画")
 
 	# ikm
-	# shinohayu = "10360"
+	shinohayu = "10360"
 	# with_liz = "13304"
 	# toku = "6540"
 	# cike = "8632"
 	# zhenhunjie = "9082"
 	# konan = "2027"
 	# saki_ni = "5120"
+	renai = "18557"
 	# print(ikm.ikanman_DLer.getBookName(shinohayu))
 	# print(ikm.ikanman_DLer.getBookName(toku))
-
-	# ik_book_pm = ikm.DLer(toku)
-	# ik_book_shino = ikm.ikanman_DLer(shinohayu)
+	ik_book_renai = ikm.DLer(renai)
+	# ik_book_pm = ikm.DLer(renai)
+	# ik_book_shino = ikm.DLer(shinohayu)
 	# ik_book_shino.dl_whole_book()
+	ik_book_renai.dl_whole_book()
 	# dman = dl.DLManager()
 
