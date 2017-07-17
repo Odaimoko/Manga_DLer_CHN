@@ -32,27 +32,27 @@ if __name__ == "__main__":
 	douluo3  = "4645740535490115552"
 	ganglian = "4475930658180096982"
 	gude = "4317064958460053300"
-	# ne_book = netease.DLer(ganglian)
-	# ne_book._dl()
+	ne_book = netease.DLer(tenma)
+	ne_book._dl()
 	# print(ne_book.get_eplist_for_one_chap(0))
 
 	# search_text.set("搜索本地漫画")
 
 	# ikm
-	shinohayu = "10360"
+	# shinohayu = "10360"
 	# with_liz = "13304"
 	# toku = "6540"
 	# cike = "8632"
 	# zhenhunjie = "9082"
 	# konan = "2027"
 	# saki_ni = "5120"
-	renai = "18557"
+	# renai = "18557"
 	# print(ikm.ikanman_DLer.getBookName(shinohayu))
 	# print(ikm.ikanman_DLer.getBookName(toku))
-	ik_book_renai = ikm.DLer(renai)
+	# ik_book_renai = ikm.DLer(renai)
 	# ik_book_pm = ikm.DLer(renai)
 	# ik_book_shino = ikm.DLer(shinohayu)
 	# ik_book_shino.dl_whole_book()
-	ik_book_renai.dl_whole_book()
+	# ik_book_renai.dl_whole_book()
 	# dman = dl.DLManager()
 

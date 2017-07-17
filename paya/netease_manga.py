@@ -265,7 +265,9 @@ class DLer(basedler.BaseDLer):
 		for pics in pics_raw:
 			num += 1
 			url = pics.split(": ")[2]  # 得到地址（分隔后最后一个）
-			url = url[1:len(url) - 2]  # 得到地址（拿来用）
+			# 现在url最后随机添加了一些奇怪的字符串/数字，去掉他。现在是每张图都一样随机加
+			url = url[1:url.find("%3D")+3]  # 得到地址（拿来用）
+
 			file_name = folder_name + '{:0>3}'.format(str(num)) + ".jpg"  # 还是说其他格式？
 			# 应是jpg，因为有jfif的前缀
 			
